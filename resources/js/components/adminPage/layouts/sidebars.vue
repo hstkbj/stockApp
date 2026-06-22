@@ -372,6 +372,9 @@
                             <RouterLink to="/category" exact-active-class="active"><i class="fe fe-list"></i> <span> Categorie</span></RouterLink>
                         </li>
                         <li>
+                            <RouterLink to="/rayon" exact-active-class="active"><i class="fe fe-layers"></i> <span> Rayon</span></RouterLink>
+                        </li>
+                        <li>
                             <RouterLink to="/product" exact-active-class="active"><i class="fe fe-box"></i> <span> Produits</span></RouterLink>
                         </li>
                         <li>

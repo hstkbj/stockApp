@@ -16,10 +16,12 @@ class Invoice extends Model
         'total_ht',
         'total_tva',
         'total_ttc',
+        'anonymous_customer_name',
         'client_id',
+        'emplacement_id',
         'user_id',
     ];
-
+ 
     protected function casts(): array
     {
         return [
@@ -30,28 +32,39 @@ class Invoice extends Model
             'total_ttc' => 'decimal:2',
         ];
     }
-
+ 
     /**
-     * Le client concerné par cette facture.
+     * Le client (peut être null si vente à un client anonyme,
+     * voir `anonymous_customer_name`).
      */
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
     }
-
+ 
     /**
-     * L'utilisateur ayant créé cette facture.
+     * L'emplacement (boutique/magasin) d'où sort la marchandise vendue.
      */
+    public function emplacement(): BelongsTo
+    {
+        return $this->belongsTo(Emplacement::class);
+    }
+ 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
-    /**
-     * Les lignes de cette facture.
-     */
+ 
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+ 
+    /**
+     * Nom du client à afficher, qu'il soit enregistré ou anonyme.
+     */
+    public function getNomClientAttribute(): string
+    {
+        return $this->client?->fullname ?? $this->anonymous_customer_name ?? 'Client anonyme';
     }
 }

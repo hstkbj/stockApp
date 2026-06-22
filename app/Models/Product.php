@@ -8,20 +8,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    protected $fillable = [
+     protected $fillable = [
         'code_barre',
         'nom',
         'prix_unitaire',
         'prix_achat',
-        'quantite',
-        'seuil_alerte',
         'fournisseur_id',
         'date_expiration',
         'image',
-        'category_id',
+        'rayon_id',
         'user_id',
     ];
-
+ 
     protected function casts(): array
     {
         return [
@@ -30,70 +28,60 @@ class Product extends Model
             'date_expiration' => 'date',
         ];
     }
-
-    /**
-     * Le fournisseur de ce produit.
-     */
+ 
     public function fournisseur(): BelongsTo
     {
         return $this->belongsTo(Fournisseur::class);
     }
-
-    /**
-     * La catégorie de ce produit.
-     */
-    public function category(): BelongsTo
+ 
+    public function rayon(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Rayon::class);
     }
-
-    /**
-     * L'utilisateur ayant créé/géré ce produit.
-     */
+ 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
+ 
     /**
-     * Les mouvements de stock de ce produit.
+     * Les lignes de stock de ce produit (une par emplacement).
      */
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(Stock::class);
+    }
+ 
     public function mouvements(): HasMany
     {
         return $this->hasMany(Mouvement::class);
     }
-
-    /**
-     * Les lignes de facture contenant ce produit.
-     */
+ 
     public function invoiceItems(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
     }
-
-    /**
-     * Les lignes d'approvisionnement contenant ce produit.
-     */
+ 
     public function aprovisionnementItems(): HasMany
     {
         return $this->hasMany(AprovisionnementItem::class);
     }
-
-    // Un produit apparaît dans plusieurs lignes de vente
-    public function venteItems()
+ 
+    /**
+     * Quantité totale en stock, tous emplacements confondus.
+     */
+    public function getQuantiteTotaleAttribute(): int
     {
-        return $this->hasMany(VenteItem::class);
+        return $this->stocks->sum('quantite');
+    }
+ 
+    /**
+     * Quantité en stock pour un emplacement donné.
+     */
+    public function stockPour(int $emplacementId): ?Stock
+    {
+        return $this->stocks->firstWhere('emplacement_id', $emplacementId);
     }
 
-    // Helper : stock en alerte
-    public function enAlerte(): bool
-    {
-        return $this->quantite <= $this->seuil_alerte;
-    }
-
-    // Helper : stock épuisé
-    public function enRupture(): bool
-    {
-        return $this->quantite === 0;
-    }
+    
 }

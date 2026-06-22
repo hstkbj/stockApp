@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('reference')->unique();
             $table->foreignId('fournisseur_id')->constrained('fournisseurs');
+            $table->foreignId('emplacement_id')->constrained('emplacements');
             $table->decimal('montant_total', 10, 2);
             $table->dateTime('date_approvisionnement');
             $table->foreignId('user_id')->constrained('users');
-            $table->enum('status',['livrer','enAttente','envoyer']);
+            $table->enum('status',['livrer','enAttente','brouillon']);
             $table->timestamps();
         });
 

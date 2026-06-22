@@ -12,10 +12,10 @@ class Category extends Model
     ];
 
     /**
-     * Les produits appartenant à cette catégorie.
+     * Les rayons appartenant à cette catégorie.
      */
-    public function products(): HasMany
+    public function rayons(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Rayon::class);
     }
 }

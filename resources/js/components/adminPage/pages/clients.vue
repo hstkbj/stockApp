@@ -203,11 +203,11 @@
             return `
 
                 <button class="btn btn-primary me-1" href="#" onclick="ShowClientFunction(${row.id})">
-                    <i class="fas fa-edit me-2"></i> Modifier
+                    <i class="fas fa-edit"></i>
                 </button>
 
                 <button class="btn btn-danger" href="#" onclick="DeleteClientFunction(${row.id})">
-                    <i class="fas fa-trash me-2"></i> Supprimé
+                    <i class="fas fa-trash"></i>
                 </button>
 
             `;

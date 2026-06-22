@@ -9,6 +9,7 @@ use App\Http\Controllers\MouvementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProduitVenteStatsController;
+use App\Http\Controllers\RayonController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VenteController;
 use Illuminate\Http\Request;
@@ -35,6 +36,9 @@ Route::middleware('auth:sanctum')->group(function(){
 
     // Catégories
     Route::apiResource('categories', CategoryController::class);
+
+    // Rayon
+    Route::apiResource('rayons', RayonController::class);
 
     // Produits
     Route::apiResource('products', ProductController::class);

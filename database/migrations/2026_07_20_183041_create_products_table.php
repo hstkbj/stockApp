@@ -17,12 +17,10 @@ return new class extends Migration
             $table->string('nom');
             $table->decimal('prix_unitaire', 10, 2);
             $table->decimal('prix_achat', 10, 2);
-            $table->integer('quantite');
-            $table->integer('seuil_alerte');
              $table->foreignId('fournisseur_id')->nullable()->constrained('fournisseurs')->nullOnDelete();
             $table->date('date_expiration')->nullable();
             $table->string('image')->nullable();
-            $table->foreignId('category_id')->constrained('categories');
+            $table->foreignId('rayon_id')->nullable()->constrained('rayons')->nullOnDelete();
             $table->foreignId('user_id')->constrained('users');
             $table->timestamps();
         });

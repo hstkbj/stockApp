@@ -8,7 +8,7 @@ use App\Models\Category;
 class CategoryController extends Controller
 {
     public function index(){
-        $categories = Category::withCount('products')->get();
+        $categories = Category::withCount('rayons')->orderBy('id','desc')->get();
         return response()->json($categories);
     }
 
@@ -24,7 +24,7 @@ class CategoryController extends Controller
 
     public function show(Category $category)
     {
-        $category->load('products');
+        $category->load('rayons');
         return response()->json($category);
     }
 
@@ -40,7 +40,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if ($category->products()->count() > 0) {
+        if ($category->rayons()->count() > 0) {
             return response()->json([
                 'message' => 'Impossible de supprimer une catégorie contenant des produits.'
             ], 422);

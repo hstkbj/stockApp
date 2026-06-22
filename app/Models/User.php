@@ -97,6 +97,11 @@ class User extends Authenticatable
     }
 
     // Helpers pour vérifier le rôle
+    public function hasRole(string $role): bool
+    {
+        return $this->role?->name === $role;
+    }
+
     public function isAdmin(): bool
     {
         return $this->role?->name === 'Admin';

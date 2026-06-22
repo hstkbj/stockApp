@@ -14,7 +14,15 @@ const routes = [
             {
                 path:'/client',
                 component: () => import('@/components/adminPage/pages/clients.vue'),
-            }
+            },
+            {
+                path:'/category',
+                component: () => import('@/components/adminPage/pages/category.vue'),
+            },
+            {
+                path:'/rayon',
+                component: () => import('@/components/adminPage/pages/rayon.vue'),
+            },
         ]
     },
     {

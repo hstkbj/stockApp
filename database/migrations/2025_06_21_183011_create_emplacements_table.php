@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('mouvements', function (Blueprint $table) {
+        Schema::create('emplacements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products');
-            $table->integer('quantite');
-            $table->enum('type', ['entree', 'sortie']);
-            $table->date('date');
-            $table->string('motif')->nullable();
-            $table->foreignId('user_id')->constrained('users');
+             $table->enum('nom',['boutique','magasin']);
             $table->timestamps();
         });
     }
@@ -28,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('mouvements');
+        Schema::dropIfExists('emplacements');
     }
 };
