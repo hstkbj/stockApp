@@ -30,36 +30,76 @@
 
         <div class="modal modal-top fade" id="mouvementModal" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-lg">
-                <form class="modal-content" @submit.prevent="!isEdite ? AddRayonFunction() : UpdateRayonFunction()">
+                <form class="modal-content" @submit.prevent="!isEdite ? AddMouvementBoutique() : UpdateMouvementFunction()">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="exampleModalLabel">{{ modalTitle }}</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-
                         <div class="row">
 
+                            <!-- Produit -->
                             <div class="col-lg-6 mb-3">
-                                <label for="">Selectionnez un produits</label>
-                                <select class="form-select" name="" id="">
-                                    <option value="">Selectionnez un produits</option>
+                                <label>Sélectionnez un produit <span class="text-danger">*</span></label>
+                                <select class="form-select" :class="{'is-invalid': isEmpty.product_id}" v-model="data.product_id">
+                                    <option value="">-- Choisir un produit --</option>
+                                    <option v-for="product in allProduct" :key="product.id" :value="product.id">
+                                        {{ product.nom }}
+                                    </option>
                                 </select>
+                                <div class="invalid-feedback" v-if="isEmpty.product_id">{{ msgInput.product_id }}</div>
                             </div>
 
+                            <!-- Quantité -->
                             <div class="col-lg-6 mb-3">
-                                <label for="">Quantité</label>
-                                <input type="number" class="form-control" placeholder="Ex:100">
+                                <label>Quantité <span class="text-danger">*</span></label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    :class="{'is-invalid': isEmpty.quantite}"
+                                    placeholder="Ex: 100"
+                                    v-model="data.quantite"
+                                    min="1"
+                                />
+                                <div class="invalid-feedback" v-if="isEmpty.quantite">{{ msgInput.quantite }}</div>
                             </div>
 
+                            <!-- Type de mouvement -->
                             <div class="col-lg-6 mb-3">
-                                <label for="">Type de mouvement</label>
-                                <select class="form-select" name="" id="">
-                                    <option value="">Selectionnez un produits</option>
+                                <label>Type de mouvement <span class="text-danger">*</span></label>
+                                <select class="form-select" :class="{'is-invalid': isEmpty.type}" v-model="data.type">
+                                    <option value="">-- Choisir un type --</option>
+                                    <option value="entree">Entrée</option>
+                                    <option value="sortie">Sortie</option>
                                 </select>
+                                <div class="invalid-feedback" v-if="isEmpty.type">{{ msgInput.type }}</div>
+                            </div>
+
+                            <!-- Date -->
+                            <div class="col-lg-6 mb-3">
+                                <label>Date <span class="text-danger">*</span></label>
+                                <input
+                                    type="date"
+                                    disabled
+                                    class="form-control"
+                                    :class="{'is-invalid': isEmpty.date}"
+                                    v-model="data.date"
+                                />
+                                <div class="invalid-feedback" v-if="isEmpty.date">{{ msgInput.date }}</div>
+                            </div>
+
+                            <!-- Motif (optionnel) -->
+                            <div class="col-lg-12 mb-3">
+                                <label>Motif <span class="text-muted">(optionnel)</span></label>
+                                <textarea
+                                    class="form-control"
+                                    placeholder="Ex: Réapprovisionnement..."
+                                    v-model="data.motif"
+                                    rows="2"
+                                ></textarea>
                             </div>
 
                         </div>
-
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">Fermé</button>
@@ -74,6 +114,64 @@
             </div>
         </div>
 
+        <!-- Modal Détails Mouvement -->
+        <div class="modal modal-top fade" id="detailMouvementModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Détails du mouvement</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" v-if="selectedMouvement">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>Produit</th>
+                                    <td>{{ selectedMouvement.product?.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Type</th>
+                                    <td>
+                                        <span v-if="selectedMouvement.type === 'entree'" class="badge bg-success">Entrée</span>
+                                        <span v-else-if="selectedMouvement.type === 'sortie'" class="badge bg-danger">Sortie</span>
+                                        <span v-else class="badge bg-warning text-dark">Transfert</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Quantité</th>
+                                    <td>{{ selectedMouvement.quantite }}</td>
+                                </tr>
+                                <tr v-if="selectedMouvement.type === 'transfert'">
+                                    <th>Destination</th>
+                                    <td>{{ selectedMouvement.emplacement_destination?.nom ?? '—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Motif</th>
+                                    <td>{{ selectedMouvement.motif ?? '—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Créé par</th>
+                                    <td>{{ selectedMouvement.user?.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Créé le</th>
+                                    <td>{{
+                                        new Intl.DateTimeFormat('fr-FR', {
+                                            year: 'numeric', month: 'short', day: 'numeric',
+                                            hour: '2-digit', minute: '2-digit'
+                                        }).format(new Date(selectedMouvement.created_at))
+                                    }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 <script setup>
@@ -84,6 +182,10 @@
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
 
     let addmodal;
+    let detailModal;
+    const selectedMouvement = ref(null)
+
+    const today = () => new Date().toISOString().split('T')[0]
 
     const data = ref({
         id:'',
@@ -92,7 +194,7 @@
         emplacement_destination_id:'',
         quantite:'',
         type:'',
-        date:'',
+        date: today(),
         motif:'',
     })
 
@@ -111,11 +213,11 @@
         data.value = {
             id:'',
             product_id:'',
-            emplacement_id:'',
+            emplacement_id:'1',
             emplacement_destination_id:'',
             quantite:'',
             type:'',
-            date:'',
+            date: today(),
             motif:'',
         }
         modalTitle.value = 'Créer un mouvement'
@@ -137,6 +239,14 @@
         })
     }
 
+    async function AllProductsFunction() {
+        await getData('/products/boutique').then(res=>{
+            if (res.status === 200) {
+                allProduct.value = res.data
+            }
+        })
+    }
+
     const columns = ref([
         {
             title: '#',
@@ -147,7 +257,33 @@
         },
         {
             title: 'Produits',
-            data: 'product.nom'
+            data: 'product',
+            render: function(data){
+                return `<span class="fw-bold">${data.nom}</span>`
+            }
+        },
+        {
+            title: 'Type',
+            data: 'type',
+            render: function(data) {
+                const types = {
+                    'entree':   '<span class="badge bg-success">Entrée</span>',
+                    'sortie':   '<span class="badge bg-danger">Sortie</span>',
+                    'transfert':'<span class="badge bg-warning text-dark">Transfert</span>',
+                }
+                return types[data] ?? '<span class="badge bg-secondary">—</span>'
+            }
+        },
+        {
+            title: 'Quantité',
+            data: 'quantite',
+        },
+        {
+            title: 'Créer par',
+            data: 'user',
+            render: function(data){
+                return `<span>${data.full_name}</span>`
+            }
         },
         {
           title: 'Crée le', data: 'created_at', render: (data, type, row) => {
@@ -167,7 +303,7 @@
             return `
 
                 <button class="btn btn-primary me-1" href="#" onclick="ShowMouvementFunction(${row.id})">
-                    <i class="fas fa-edit"></i>
+                    <i class="fas fa-eye"></i>
                 </button>
 
                 <button class="btn btn-danger" href="#" onclick="DeleteMouvementFunction(${row.id})">
@@ -180,7 +316,7 @@
     ])
 
     async function AddMouvementBoutique() {
-        const ignoredFields = ['id','emplacement_destination_id','motif'];
+        const ignoredFields = ['id','motif','emplacement_destination_id'];
         for (const field in data.value) {
             if (ignoredFields.includes(field)) continue;
             isEmpty.value[field] = !data.value[field];
@@ -188,6 +324,8 @@
         }
 
         const allEmpty = Object.values(isEmpty.value).every(value => value === false);
+
+        console.log(data.value)
 
         if (allEmpty) {
             isLoader.value = true;
@@ -216,17 +354,15 @@
         }
     }
 
-    window.ShowMouvementFunction = async function(id){
-        await getSingleData('/mouvements/'+id).then(res=>{
+    window.ShowMouvementFunction = async function(id) {
+        await getSingleData('/mouvements/' + id).then(res => {
             if (res.status === 200) {
-                data.value = res.data
-                isEdite.value = true
-                modalTitle.value = 'Modifier un rayon'
-                modalbutton.value = 'Modifier'
-                addmodal.show()
+                selectedMouvement.value = res.data
+                detailModal.show()
             }
         })
     }
+
 
     async function UpdateMouvementFunction(){
         isLoader.value = true;
@@ -281,7 +417,9 @@
 
     onMounted(()=>{
         addmodal = new bootstrap.Modal(document.getElementById('mouvementModal'));
+        detailModal = new bootstrap.Modal(document.getElementById('detailMouvementModal'))
         AllMouvementFunction()
+        AllProductsFunction()
     })
 </script>
 <style>

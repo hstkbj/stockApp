@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table">
+                        <div class="table-responsive">
                             <DataTable :data="allProduct" :columns="columns"/>
                         </div>
                     </div>
@@ -287,13 +287,17 @@
         { title: 'Action', data: null, render: (data,type,row) => {
             return `
 
-                <button class="btn btn-primary me-1" href="#" onclick="ShowProductFunction(${row.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
+                <div class="dropdown">
+                    <a class="btn btn-lg btn-light " href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fe fe-more-vertical"></i>
+                    </a>
 
-                <button class="btn btn-danger" href="#" onclick="DeleteProductFunction(${row.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="fe fe-eye me-2"></i> Détails</a></li>
+                        <li><a class="dropdown-item cursor-pointer" onclick="ShowProductFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>
+                        <li><a class="dropdown-item cursor-pointer" onclick="DeleteProductFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
+                    </ul>
+                </div>
 
             `;
             }

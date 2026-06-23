@@ -31,6 +31,10 @@ const routes = [
                 path:'/mouvement',
                 component: () => import('@/components/adminPage/pages/mouvement.vue'),
             },
+            {
+                path:'/vente',
+                component: () => import('@/components/adminPage/pages/vente.vue'),
+            },
         ]
     },
     {
