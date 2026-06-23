@@ -23,6 +23,14 @@ const routes = [
                 path:'/rayon',
                 component: () => import('@/components/adminPage/pages/rayon.vue'),
             },
+            {
+                path:'/product',
+                component: () => import('@/components/adminPage/pages/product.vue'),
+            },
+            {
+                path:'/mouvement',
+                component: () => import('@/components/adminPage/pages/mouvement.vue'),
+            },
         ]
     },
     {

@@ -1,8 +1,8 @@
 import axiosInstance from "./axios";
 
-export const getData = async (endpoint) => {
+export const getData = async (endpoint, options = {}) => {
     try {
-        const response = await axiosInstance.get(endpoint);
+        const response = await axiosInstance.get(endpoint,options);
         return response;
     } catch (error) {
         console.error("Error fetching data:", error);
