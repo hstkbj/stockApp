@@ -156,7 +156,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mecefData">
+                                <div class="mecefData" v-if="invoice.mecef">
                                     <div class="qrcode">
                                         <img v-if="qrImage" :src="qrImage" />
                                     </div>
