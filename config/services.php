@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'mecefservice' => [
+        'api_url'=> env('API_URL'),
+        'ifu'=> env('IFU'),
+        'token'=> env('TOKEN')
+    ]
+
 ];

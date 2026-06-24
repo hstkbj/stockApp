@@ -5,6 +5,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FournisseurController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\InvoiceMecefController;
 use App\Http\Controllers\MouvementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
@@ -54,7 +56,10 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('mouvements', MouvementController::class)->except(['update']);
 
     // Ventes
-    Route::apiResource('ventes', VenteController::class)->except(['update']);
+    Route::apiResource('invoices', InvoiceController::class);
+    Route::put('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus']);
+    Route::put('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel']);
+    Route::post('invoices/{invoice}/normalize', [InvoiceMecefController::class, 'normalizeInvoice']);
 
     // Fournisseurs
     Route::apiResource('fournisseurs', FournisseurController::class);

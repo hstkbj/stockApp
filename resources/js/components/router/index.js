@@ -35,6 +35,18 @@ const routes = [
                 path:'/vente',
                 component: () => import('@/components/adminPage/pages/vente.vue'),
             },
+            {
+                path:'/new-vente',
+                component: () => import('@/components/adminPage/pages/newVente.vue'),
+            },
+            {
+                path: '/edite-vente/:id?',
+                component: () => import('@/components/adminPage/pages/newVente.vue'),
+            },
+            {
+                path: '/details-vente/:id',
+                component: () => import('@/components/adminPage/pages/detailVente.vue'),
+            },
         ]
     },
     {

@@ -3,23 +3,23 @@
     <!-- Header -->
         <div class="header header-one">
             <a href="index.html"  class="d-inline-flex d-sm-inline-flex align-items-center d-md-inline-flex d-lg-none align-items-center device-logo">
-                    <img src="assets/img/logo.png" class="img-fluid logo2" alt="Logo">
+                    <img src="/assets/img/logo.png" class="img-fluid logo2" alt="Logo">
             </a>
             <div class="main-logo d-inline float-start d-lg-flex align-items-center d-none d-sm-none d-md-none">
                 <div class="logo-white">
                     <a href="index.html">
-                        <img src="assets/img/logo-full-white.png" class="img-fluid logo-blue" alt="Logo">
+                        <img src="/assets/img/logo-full-white.png" class="img-fluid logo-blue" alt="Logo">
                     </a>
                     <a href="index.html">
-                        <img src="assets/img/logo-small-white.png" class="img-fluid logo-small" alt="Logo">
+                        <img src="/assets/img/logo-small-white.png" class="img-fluid logo-small" alt="Logo">
                     </a>
                 </div>
                 <div class="logo-color">
                     <a href="index.html">
-                        <img src="assets/img/logo.png" class="img-fluid logo-blue" alt="Logo">
+                        <img src="/assets/img/logo.png" class="img-fluid logo-blue" alt="Logo">
                     </a>
                     <a href="index.html">
-                        <img src="assets/img/logo-small.png" class="img-fluid logo-small" alt="Logo">
+                        <img src="/assets/img/logo-small.png" class="img-fluid logo-small" alt="Logo">
                     </a>
                 </div>
             </div>
@@ -38,7 +38,7 @@
             <div class="top-nav-search">
                 <form>
                     <input type="text" class="form-control" placeholder="Search here">
-                    <button class="btn" type="submit"><img src="assets/img/icons/search.svg" alt="img"></button>
+                    <button class="btn" type="submit"><img src="/assets/img/icons/search.svg" alt="img"></button>
                 </form>
             </div>
             <!-- /Search -->
@@ -68,7 +68,7 @@
                                     <a href="profile.html">
                                         <div class="d-flex">
                                             <span class="avatar avatar-md active">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="assets/img/profiles/avatar-02.jpg">
+                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-02.jpg">
                                             </span>
                                             <div class="media-body">
                                                 <p class="noti-details"><span class="noti-title">Lex Murphy</span> requested access to <span class="noti-title">UNIX directory tree hierarchy</span></p>
@@ -85,7 +85,7 @@
                                     <a href="profile.html">
                                         <div class="d-flex">
                                             <span class="avatar avatar-md active">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="assets/img/profiles/avatar-10.jpg">
+                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-10.jpg">
                                             </span>
                                             <div class="media-body">
                                                 <p class="noti-details"><span class="noti-title">Ray Arnold</span> left 6 comments <span class="noti-title">on Isla Nublar SOC2 compliance report</span></p>
@@ -98,7 +98,7 @@
                                     <a href="profile.html">
                                         <div class="d-flex">
                                             <span class="avatar avatar-md">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="assets/img/profiles/avatar-13.jpg">
+                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-13.jpg">
                                             </span>
                                             <div class="media-body">
                                                 <p class="noti-details"><span class="noti-title">Dennis Nedry</span> commented on <span class="noti-title"> Isla Nublar SOC2 compliance report</span></p>
@@ -114,7 +114,7 @@
                                     <a href="profile.html">
                                         <div class="d-flex">
                                             <span class="avatar avatar-md">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="assets/img/profiles/avatar-05.jpg">
+                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-05.jpg">
                                             </span>
                                             <div class="media-body">
                                                 <p class="noti-details"><span class="noti-title">John Hammond</span> created <span class="noti-title">Isla Nublar SOC2 compliance report</span></p>
@@ -139,7 +139,7 @@
                 <li class="nav-item dropdown">
                     <a href="javascript:void(0)" class="user-link  nav-link" data-bs-toggle="dropdown">
                         <span class="user-img">
-                            <img src="assets/img/profiles/avatar-07.jpg" alt="img" class="profilesidebar">
+                            <img src="/assets/img/profiles/avatar-07.jpg" alt="img" class="profilesidebar">
                             <span class="animate-circle"></span>
                         </span>
                         <span class="user-content">

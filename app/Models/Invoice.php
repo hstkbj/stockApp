@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model
 {
@@ -66,5 +67,10 @@ class Invoice extends Model
     public function getNomClientAttribute(): string
     {
         return $this->client?->fullname ?? $this->anonymous_customer_name ?? 'Client anonyme';
+    }
+
+    public function mecef(): HasOne
+    {
+        return $this->hasOne(InvoiceMecef::class);
     }
 }

@@ -407,6 +407,18 @@
             cancelButtonText: "Fermé"
         }).then(async (result) => {
             if (result.isConfirmed) {
+
+                Swal.fire({
+                    title: 'Chargement...',
+                    text: 'Veuillez patienter',
+                    allowOutsideClick: false,   // empêche de fermer en cliquant dehors
+                    allowEscapeKey: false,       // empêche de fermer avec Echap
+                    showConfirmButton: false,    // cache le bouton OK
+                    didOpen: () => {
+                        Swal.showLoading()       // affiche le spinner
+                    }
+                })
+
                 await deleteData('/products/'+id)
                     .then(res=>{
                         if (res.status === 200) {

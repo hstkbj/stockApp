@@ -245,6 +245,18 @@
             confirmButtonText: "Supprimé",
             cancelButtonText: "Fermé"
         }).then(async (result) => {
+
+            Swal.fire({
+                title: 'Chargement...',
+                text: 'Veuillez patienter',
+                allowOutsideClick: false,   // empêche de fermer en cliquant dehors
+                allowEscapeKey: false,       // empêche de fermer avec Echap
+                showConfirmButton: false,    // cache le bouton OK
+                didOpen: () => {
+                    Swal.showLoading()       // affiche le spinner
+                }
+            })
+
             if (result.isConfirmed) {
                 await deleteData('/rayons/'+id)
                     .then(res=>{
