@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus']);
     Route::put('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel']);
     Route::post('invoices/{invoice}/normalize', [InvoiceMecefController::class, 'normalizeInvoice']);
+    Route::post('invoices/{invoice}/cancelled', [InvoiceMecefController::class, 'cancelNormalizedInvoice']);
 
     // Fournisseurs
     Route::apiResource('fournisseurs', FournisseurController::class);

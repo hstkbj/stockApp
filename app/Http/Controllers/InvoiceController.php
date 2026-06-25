@@ -97,7 +97,13 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['client', 'user', 'mecef', 'emplacement', 'items.product']);
+        $invoice->load([
+            'client', 
+            'user', 
+            'mecef' => fn($query) => $query->latest(),
+            'emplacement', 
+            'items.product'
+            ]);
 
         return response()->json($invoice);
     }

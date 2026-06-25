@@ -43,6 +43,36 @@ class MecefService{
             ->json();
     }
 
+    public function sendAvoirCancelledInvoice(Invoice $invoice, string $invoiceType = 'FA', string $paymentType = 'ESPECES'){
+        $invoice->load(['client','user','items.product','mecef']);
+
+        /**
+         * Code MECeF/DGI de la facture
+         * que l'on souhaite annuler.
+         */
+        // Retirer les tirets pour obtenir exactement 24 caractères
+        $reference = str_replace('-', '', $invoice->mecef[0]->code_mecef_dgi);
+
+        $payload = [
+            'ifu'      => $this->ifu,
+            'type'     => $invoiceType,
+            'reference' => $reference,
+            'operator' => ['name' => $invoice->user->full_name],
+            'client'   => $this->buildClient($invoice),
+            'items'    => $this->buildItems($invoice),
+            'payment'  => [
+                ['name' => $paymentType, 'amount' => (int) $invoice->total_ttc]
+            ],
+        ];
+
+        return Http::withOptions([
+            'verify' => false
+        ])
+        ->withToken($this->token)
+        ->post($this->apiUrl, $payload)
+        ->json();
+    }
+
     /**
      * Étape 2 : Confirmer la facture (finalisation)
      * Retourne codeMECeFDGI + qrCode

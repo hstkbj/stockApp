@@ -163,7 +163,7 @@
                                     <div class="data">
                                         <div class="d-flex flex-column align-items-center justify-content-center mb-2">
                                             <span>Code MECeF/DGI</span>
-                                            <span class="fw-bold">{{ invoice.mecef?.code_mecef_dgi }}</span>
+                                            <span class="fw-bold">{{ invoice.mecef[0].code_mecef_dgi }}</span>
                                         </div>
                                         <div class="other w-100 d-flex align-items-center justify-content-between">
                                             <div class="titles">
@@ -172,9 +172,9 @@
                                                 <p>MECeF Heure:</p>
                                             </div>
                                             <div class="titleData">
-                                                <p class="fw-bold text-end">{{ invoice.mecef?.nim }}</p>
-                                                <p class="fw-bold text-end">{{ invoice.mecef?.counters }}</p>
-                                                <p class="fw-bold text-end">{{ formatDateMecef(invoice.mecef?.mecef_datetime) }}</p>
+                                                <p class="fw-bold text-end">{{ invoice.mecef[0].nim }}</p>
+                                                <p class="fw-bold text-end">{{ invoice.mecef[0].counters }}</p>
+                                                <p class="fw-bold text-end">{{ formatDateMecef(invoice.mecef[0].mecef_datetime) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -217,8 +217,8 @@
                                         Total TTC : <strong class="text-primary">{{ formatCurrency(invoice.total_ttc) }}</strong>
                                     </p>
                                 </div>
-                                <hr v-if="invoice.mecef?.status !== 'confirmed'">
-                                <div class="normalize mb-3" v-if="invoice.mecef?.status !== 'confirmed'">
+                                <hr v-if="invoice.mecef[0].status !== 'confirmed'">
+                                <div class="normalize mb-3" v-if="invoice.mecef[0].status !== 'confirmed'">
                                     <strong class="customer-text-one">Normalisation<span> :</span></strong>
                                     <form @submit.prevent="NormalizeInvoiceFunction">
                                         <div class="row">
@@ -253,6 +253,18 @@
                                             <button type="submit" class="btn btn-primary">Normaliser</button>
                                         </div>
                                     </form>
+                                </div>
+                                <hr>
+                                <div class="d-flex flex-column align-items-start justify-content-start gap-2">
+                                    <a href="#" class="">
+                                        Télécharger le PDF
+                                    </a>
+                                    <a href="#">
+                                        Envoyer par mail
+                                    </a>
+                                    <a @click="cancelledNomalizeInvoiceFunction" class="cursor-pointer">
+                                        Créer un avoir total
+                                    </a>
                                 </div>
                                 <hr>
                                 <!-- Timeline -->
@@ -391,7 +403,7 @@ async function loadInvoice() {
         if (res.status === 200) {
             invoice.value        = res.data
             selectedStatus.value = res.data.status
-            QrCodeFunction(invoice.value.mecef?.qr_code)
+            QrCodeFunction(invoice.value.mecef[0].qr_code)
         }
     } catch (error) {
         Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de charger la facture.' })
@@ -530,9 +542,66 @@ async function NormalizeInvoiceFunction(){
                     }
                 })
             }
+        }).catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Normalisation impossible',
+                text: error.response?.data?.message || 'Une erreur est survenue',
+                confirmButtonColor: '#002D5D',
+                confirmButtonText: 'OK'
+            })
         })
 
     }
+}
+
+// ─── Cancelled Normalisation ──────────────────────────────────────────────────────────────
+async function cancelledNomalizeInvoiceFunction(){
+    Swal.fire({
+            title: "Voulez-vous annulé la normalisation de cette facture ?",
+            text: "...",
+            icon: "warning",
+            showCancelButton: true,
+            cancelButtonColor: "#d33",
+            confirmButtonColor: "#002D5D",
+            confirmButtonText: "Oui",
+            cancelButtonText: "Non"
+        }).then(async (result) => {
+
+            Swal.fire({
+                title: 'Chargement...',
+                text: 'Veuillez patienter',
+                allowOutsideClick: false,   // empêche de fermer en cliquant dehors
+                allowEscapeKey: false,       // empêche de fermer avec Echap
+                showConfirmButton: false,    // cache le bouton OK
+                didOpen: () => {
+                    Swal.showLoading()       // affiche le spinner
+                }
+            })
+
+            if (result.isConfirmed) {
+                await postData(`invoices/${invoice.value.id}/cancelled`,data.value).then(res=>{
+                    if (res.status === 200) {
+                        Swal.fire({
+                            position: "center",
+                            icon: "success",
+                            text: "Opération effectuer",
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                        loadInvoice()
+                    }
+                })
+            }
+        }).catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Normalisation impossible',
+                text: error.response?.data?.message || 'Une erreur est survenue',
+                confirmButtonColor: '#002D5D',
+                confirmButtonText: 'OK'
+            })
+        })
 }
 
 

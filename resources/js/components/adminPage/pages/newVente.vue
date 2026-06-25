@@ -375,6 +375,66 @@
             if (item.unit_price === null || item.unit_price === '' || item.unit_price < 0) { isEmpty.value[`unit_price_${i}`] = true; return; }
         }
 
+        // ── Vérification du seuil d'alerte ───────────────────────────────────────
+        const produitsSousSeuilLines = [];
+
+        for (const item of formData.value.items) {
+            if (!item.product_id) continue;
+
+            const product = allProducts.value.find(p => p.id == item.product_id);
+            if (!product) continue;
+
+            // Le stock et le seuil sont dans stocks[0] (filtré par emplacement via /products/boutique)
+            const stock        = product.stocks?.[0];
+            const stockActuel  = stock?.quantite ?? 0;
+            const seuilAlerte  = stock?.seuil_alerte ?? 0;
+            const stockApres   = stockActuel - item.quantity;
+
+            if (stockApres <= seuilAlerte) {
+                produitsSousSeuilLines.push(`
+                    <tr>
+                        <td class="text-start">${product.nom}</td>
+                        <td class="text-center">${stockActuel}</td>
+                        <td class="text-center ${stockApres < 0 ? 'text-danger fw-bold' : 'text-warning fw-bold'}">${stockApres}</td>
+                        <td class="text-center">${seuilAlerte}</td>
+                    </tr>
+                `);
+            }
+        }
+
+        if (produitsSousSeuilLines.length > 0) {
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: '⚠️ Seuil d\'alerte atteint',
+                html: `
+                    Après cette vente, les produits suivants passeront sous leur seuil d'alerte :<br><br>
+                    <table class="table table-sm table-bordered" style="font-size:13px;">
+                        <thead style="background:#fff3cd;">
+                            <tr>
+                                <th class="text-start">Produit</th>
+                                <th>Stock actuel</th>
+                                <th>Stock après</th>
+                                <th>Seuil</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${produitsSousSeuilLines.join('')}
+                        </tbody>
+                    </table>
+                    Voulez-vous vraiment continuer ?
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Oui, valider la vente',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#002D5D',
+                cancelButtonColor: '#6c757d',
+                width: '550px',
+            });
+
+            if (!result.isConfirmed) return;
+        }
+        // ─────────────────────────────────────────────────────────────────────────
+
         // Loader
         Swal.fire({
             title: isEdite.value ? 'Modification...' : 'Enregistrement...',

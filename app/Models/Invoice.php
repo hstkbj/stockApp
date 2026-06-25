@@ -69,8 +69,8 @@ class Invoice extends Model
         return $this->client?->fullname ?? $this->anonymous_customer_name ?? 'Client anonyme';
     }
 
-    public function mecef(): HasOne
+    public function mecef(): HasMany
     {
-        return $this->hasOne(InvoiceMecef::class);
+        return $this->hasMany(InvoiceMecef::class);
     }
 }

@@ -113,4 +113,80 @@ class InvoiceMecefController extends Controller
 
         return response()->json($data, 201);
     }
+
+    public function cancelNormalizedInvoice(Request $request,Invoice $invoice){
+        
+        //Vérifier si la facture est déjà normalisé
+        if ($invoice->mecef[0]->status !== 'confirmed') {
+            return response()->json([
+                'message' => 'Cette facture n\'est pas normalisée.',
+            ], 422);
+        }
+
+        $paymentType = $request->payment_type ?? 'ESPECES';
+
+        $mecef = new MecefService();
+
+        // Étape 1 : création de l'avoir
+        $response = $mecef->sendAvoirCancelledInvoice(
+            $invoice,
+            'FA',
+            $paymentType
+        );
+
+        if (isset($response['errorCode'])) {
+            return response()->json([
+                'message'   => $response['errorDesc'],
+                'errorCode' => $response['errorCode']
+            ], 422);
+        }
+
+        $uid = $response['uid']
+                ?? $response['data']['uid']
+                ?? $response['result']['uid']
+                ?? null;
+        
+        if (!$uid) {
+            return response()->json([
+                'message' => 'UID introuvable.'
+            ], 422);
+        }
+
+        // Étape 2 : confirmation de l'avoir
+        $confirmation = $mecef->confirmInvoice($uid);
+
+        if (isset($confirmation['errorCode'])) {
+            return response()->json([
+                'message'   => $confirmation['errorDesc'],
+                'errorCode' => $confirmation['errorCode']
+            ], 422);
+        }
+
+        // Étape 3 : sauvegarde
+        $avoir = InvoiceMecef::create([
+            'invoice_id'     => $invoice->id,
+            'uid'            => $uid,
+            'invoice_type'   => 'FA',
+            'payment_type'   => $paymentType,
+            'code_mecef_dgi' => $confirmation['codeMECeFDGI'],
+            'qr_code'        => $confirmation['qrCode'],
+            'nim'            => $confirmation['nim'],
+            'counters'       => $confirmation['counters'],
+            'mecef_datetime' => Carbon::createFromFormat(
+                'd/m/Y H:i:s',
+                $confirmation['dateTime']
+            ),
+            'total_mecef'    => $response['total'],
+            'vat_b'          => $response['vab'],
+            'ht_b'           => $response['hab'],
+            'status'         => 'confirmed',
+        ]);
+
+        return response()->json([
+            'message' => 'Facture annulée avec succès.',
+            'data'    => $avoir
+        ]);
+
+    }
+    
 }
