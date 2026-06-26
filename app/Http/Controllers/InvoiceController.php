@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Emplacement;
 use App\Models\Invoice;
+use App\Models\Mouvement;
 use App\Models\InvoiceItem;
 use App\Models\Stock;
 use Illuminate\Http\Request;
@@ -87,6 +88,19 @@ class InvoiceController extends Controller
             $this->verifierStockSuffisant($invoice);
             $this->deduireStock($invoice);
 
+            // Enregistrer les mouvements de sortie pour chaque article
+            foreach ($invoice->items as $item) {
+                Mouvement::create([
+                    'product_id'    => $item->product_id,
+                    'emplacement_id'=> $invoice->emplacement_id,
+                    'quantite'      => $item->quantity,
+                    'type'          => 'sortie',
+                    'date'          => now()->toDateString(),
+                    'motif'         => 'Vente ' . $invoice->invoice_number,
+                    'user_id'       => auth()->id(),
+                ]);
+            }
+
             return $invoice;
         });
 
@@ -121,7 +135,7 @@ class InvoiceController extends Controller
             'emplacement_id'     => 'required|exists:emplacements,id',
             'due_at'             => 'required|date',
             'echeance_at'        => 'required|date',
-            'status'            => 'required',
+            'status'             => 'required',
             'is_taxable'         => 'required|boolean',
             'items'              => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -130,10 +144,16 @@ class InvoiceController extends Controller
         ]);
 
         DB::transaction(function () use ($invoice, $validated) {
-            // Remettre l'ancien stock avant modification
+
+            // 0. Quantités par produit AVANT modification (regroupées, au cas où un produit apparaîtrait sur plusieurs lignes)
+            $ancienQuantites = $invoice->items()->get()
+                ->groupBy('product_id')
+                ->map(fn($items) => $items->sum('quantity'));
+
+            // 1. Remettre l'ancien stock avant modification
             $this->remettreStock($invoice);
 
-            // Recalcul des totaux
+            // 2. Recalcul des totaux
             $totalHt  = collect($validated['items'])->sum(
                 fn($item) => $item['quantity'] * $item['unit_price']
             );
@@ -160,7 +180,7 @@ class InvoiceController extends Controller
                 'total_ttc'               => $totalTtc,
             ]);
 
-            // Remplacer les lignes
+            // 3. Remplacer les lignes
             $invoice->items()->delete();
             foreach ($validated['items'] as $item) {
                 InvoiceItem::create([
@@ -172,9 +192,40 @@ class InvoiceController extends Controller
                 ]);
             }
 
-            // Vérifier et déduire le nouveau stock
-            $this->verifierStockSuffisant($invoice->fresh('items.product'));
-            $this->deduireStock($invoice->fresh('items'));
+            // 4. Vérifier et déduire le nouveau stock
+            $invoice->load('items.product');
+            $this->verifierStockSuffisant($invoice);
+            $this->deduireStock($invoice);
+
+            // 5. Quantités par produit APRÈS modification
+            $nouvellesQuantites = $invoice->items
+                ->groupBy('product_id')
+                ->map(fn($items) => $items->sum('quantity'));
+
+            // 6. Comparer et ne tracer QUE les écarts réels
+            $tousLesProduits = $ancienQuantites->keys()
+                ->merge($nouvellesQuantites->keys())
+                ->unique();
+
+            foreach ($tousLesProduits as $productId) {
+                $avant = $ancienQuantites->get($productId, 0);
+                $apres = $nouvellesQuantites->get($productId, 0);
+                $ecart = $apres - $avant;
+
+                if ($ecart === 0) {
+                    continue; // rien n'a changé pour ce produit, pas de mouvement
+                }
+
+                Mouvement::create([
+                    'product_id'     => $productId,
+                    'emplacement_id' => $invoice->emplacement_id,
+                    'quantite'       => abs($ecart),
+                    'type'           => $ecart > 0 ? 'sortie' : 'entree',
+                    'date'           => now()->toDateString(),
+                    'motif'          => 'Ajustement modification facture ' . $invoice->invoice_number,
+                    'user_id'        => auth()->id(),
+                ]);
+            }
         });
 
         $invoice->load(['client', 'user', 'emplacement', 'items.product']);
@@ -235,7 +286,20 @@ class InvoiceController extends Controller
         DB::transaction(function () use ($invoice) {
             // Si déjà annulée, le stock a déjà été remis via cancel()
             if ($invoice->status !== 'cancelled') {
+                $invoice->load('items');
                 $this->remettreStock($invoice);
+
+                foreach ($invoice->items as $item) {
+                    Mouvement::create([
+                        'product_id'     => $item->product_id,
+                        'emplacement_id' => $invoice->emplacement_id,
+                        'quantite'       => $item->quantity,
+                        'type'           => 'entree',
+                        'date'           => now()->toDateString(),
+                        'motif'          => 'Suppression facture ' . $invoice->invoice_number,
+                        'user_id'        => auth()->id(),
+                    ]);
+                }
             }
 
             $invoice->delete(); // items supprimés par cascade

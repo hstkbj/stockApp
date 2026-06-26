@@ -73,6 +73,10 @@ class MecefService{
         ->json();
     }
 
+    public function sendPartialAvoirInvoice(Invoice $invoice, string $invoiceType = 'FA', string $paymentType = 'ESPECES'){
+
+    }
+
     /**
      * Étape 2 : Confirmer la facture (finalisation)
      * Retourne codeMECeFDGI + qrCode

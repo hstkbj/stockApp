@@ -384,9 +384,6 @@
                             <RouterLink to="/vente" exact-active-class="active"><i class="fe fe-shopping-cart"></i> <span> Vente</span></RouterLink>
                         </li>
                         <li>
-                            <RouterLink to="/invoice" exact-active-class="active"><i class="fe fe-file-text"></i> <span> Facture</span></RouterLink>
-                        </li>
-                        <li>
                             <RouterLink to="/fournisseur" exact-active-class="active"><i class="fe fe-truck"></i> <span> Fournisseur</span></RouterLink>
                         </li>
                         <li>

@@ -9,12 +9,21 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Emplacement;
+use App\Models\Stock;
 
 class AprovisionnementController extends Controller
 {
-    public function index(){
+    public function index(Request $request){
+
+        $request->validate([
+            'emplacement' => 'required|in:boutique,magasin',
+        ]);
+
+        $emplacement = Emplacement::where('nom', $request->emplacement)->firstOrFail();
+
         $query = Aprovisionnement::with('fournisseur', 'user', 'items.product');
-        $approvisionnements = $query->latest()->get();
+        $approvisionnements = $query->where('emplacement_id', $emplacement->id)->latest()->get();
         return response()->json($approvisionnements);
     }
 
@@ -23,6 +32,7 @@ class AprovisionnementController extends Controller
         $validated = $request->validate([
             'fournisseur_id'          => 'required|exists:fournisseurs,id',
             'date_approvisionnement'  => 'required|date',
+            'emplacement'             => 'required|in:boutique,magasin',
             'items'                   => 'required|array|min:1',
             'items.*.product_id'      => 'required|exists:products,id',
             'items.*.quantite'        => 'required|integer|min:1',
@@ -35,6 +45,8 @@ class AprovisionnementController extends Controller
 
             $montant_total = 0;
 
+            $emplacement = Emplacement::where('nom', $request->emplacement)->firstOrFail();
+
             foreach ($validated['items'] as $item) {
                 $montant_total += $item['quantite'] * $item['prix_unitaire'];
             }
@@ -42,11 +54,12 @@ class AprovisionnementController extends Controller
             // Création approvisionnement
             $appro = Aprovisionnement::create([
                 'reference'              => 'APR-' . strtoupper(Str::random(8)),
+                'emplacement_id'         => $emplacement->id,
                 'fournisseur_id'         => $validated['fournisseur_id'],
                 'montant_total'          => $montant_total,
                 'date_approvisionnement' => $validated['date_approvisionnement'],
                 'user_id'                => auth()->id(),
-                'status'                 => 'enAttente',
+                'status'                 => 'brouillon',
             ]);
 
             // Création des items uniquement
@@ -127,32 +140,45 @@ class AprovisionnementController extends Controller
             ], 422);
         }
 
+        // Charger les items et l'emplacement de l'approvisionnement
+        $aprovisionnement->load('items');
+
         DB::beginTransaction();
 
         try {
-
             foreach ($aprovisionnement->items as $item) {
 
-                $product = Product::findOrFail($item->product_id);
+                // Trouver le stock du produit dans l'emplacement de l'approvisionnement
+                $stock = Stock::where('product_id', $item->product_id)
+                    ->where('emplacement_id', $aprovisionnement->emplacement_id)
+                    ->first();
 
-                // Ajouter le stock
-                $product->increment('quantite', $item->quantite);
+                if (! $stock) {
+                    // Si le stock n'existe pas encore pour cet emplacement, le créer
+                    $stock = Stock::create([
+                        'product_id'     => $item->product_id,
+                        'emplacement_id' => $aprovisionnement->emplacement_id,
+                        'quantite'       => 0,
+                        'seuil_alerte'   => 0,
+                    ]);
+                }
 
-                // Mouvement entrée
+                // Incrémenter le stock de l'emplacement concerné
+                $stock->increment('quantite', $item->quantite);
+
+                // Mouvement d'entrée lié à l'emplacement
                 Mouvement::create([
-                    'product_id' => $item->product_id,
-                    'quantite'   => $item->quantite,
-                    'type'       => 'entree',
-                    'date'       => now(),
-                    'motif'      => 'Approvisionnement ' . $aprovisionnement->reference,
-                    'user_id'    => auth()->id(),
+                    'product_id'    => $item->product_id,
+                    'emplacement_id'=> $aprovisionnement->emplacement_id,
+                    'quantite'      => $item->quantite,
+                    'type'          => 'entree',
+                    'date'          => now()->toDateString(),
+                    'motif'         => 'Approvisionnement ' . $aprovisionnement->reference,
+                    'user_id'       => auth()->id(),
                 ]);
             }
 
-            // Changer le statut
-            $aprovisionnement->update([
-                'status' => 'livrer'
-            ]);
+            $aprovisionnement->update(['status' => 'livrer']);
 
             DB::commit();
 

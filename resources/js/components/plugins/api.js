@@ -20,9 +20,9 @@ export const getSingleData = async (endpoint) => {
     }
 }
 
-export const postData = async (endpoint, data) => {
+export const postData = async (endpoint, data, options) => {
     try {
-        const response = await axiosInstance.post(endpoint, data);
+        const response = await axiosInstance.post(endpoint, data, options);
         return response;
     } catch (error) {
         console.error("Error posting data:", error);

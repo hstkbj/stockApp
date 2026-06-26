@@ -98,6 +98,7 @@
                                 <label for="nameSlideTop" class="form-label">Fournisseur (Optionnelle)</label>
                                 <select class="form-select" v-model="data.fournisseur_id">
                                     <option value="">Selectionnez un fournisseur</option>
+                                    <option v-for="(four,index) in allFournisseur" :key="index" :value="four.id">{{ four.nom }}</option>
                                 </select>
                                 <div v-if="isEmpty.fournisseur_id" class="invalid-feedback">
                                     {{ msgInput.fournisseur_id }}
@@ -164,6 +165,7 @@
     const modalbutton = ref('')
     const allProduct = ref([])
     const allRayon = ref([])
+    const allFournisseur = ref([])
 
     function showModal(){
         addmodal.show();
@@ -199,6 +201,14 @@
         await getData('/rayons').then(res=>{
             if (res.status === 200) {
                 allRayon.value = res.data
+            }
+        })
+    }
+
+    async function AllFournisseurFunction() {
+        await getData('/fournisseurs').then(res=>{
+            if (res.status === 200) {
+                allFournisseur.value = res.data
             }
         })
     }
@@ -440,6 +450,7 @@
         addmodal = new bootstrap.Modal(document.getElementById('productModal'));
         AllProductsFunction()
         AllRayonFunction()
+        AllFournisseurFunction()
     })
 
 </script>

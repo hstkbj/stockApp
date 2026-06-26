@@ -47,6 +47,14 @@ const routes = [
                 path: '/details-vente/:id',
                 component: () => import('@/components/adminPage/pages/detailVente.vue'),
             },
+            {
+                path: '/fournisseur',
+                component: () => import('@/components/adminPage/pages/fournisseur.vue'),
+            },
+            {
+                path: '/approvisionnement',
+                component: () => import('@/components/adminPage/pages/approvisionnement.vue'),
+            },
         ]
     },
     {
