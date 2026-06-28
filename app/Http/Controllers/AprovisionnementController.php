@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Emplacement;
 use App\Models\Stock;
+use App\Mail\BonDeCommandeMail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 
 class AprovisionnementController extends Controller
 {
@@ -130,6 +133,71 @@ class AprovisionnementController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Erreur : ' . $e->getMessage()], 500);
         }
+    }
+
+    public function enAttente(Request $request, Aprovisionnement $aprovisionnement){
+
+        if ($aprovisionnement->status === 'enAttente') {
+            return response()->json([
+                'message' => 'Cet approvisionnement est déjà en attente.'
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'send_email' => 'nullable|boolean', // true = envoyer le bon de commande
+        ]);
+
+        // Charger les items et l'emplacement de l'approvisionnement
+        $aprovisionnement->load('items.product','fournisseur');
+
+        $aprovisionnement->update(['status' => 'enAttente']);
+
+        // Envoyer le mail seulement si send_email = true ET que le fournisseur a un email
+        if (! empty($validated['send_email']) && $aprovisionnement->fournisseur?->email) {
+
+            // 1. Générer le PDF
+            $pdf = Pdf::loadView('pdf.bon-de-commande', [
+                'aprovisionnement' => $aprovisionnement,
+            ])->setPaper('a4', 'portrait');
+
+            // 2. Sauvegarder temporairement
+            $fileName = 'bdc-' . $aprovisionnement->reference . '-' . time() . '.pdf';
+            $tempPath = storage_path('app/temp/' . $fileName);
+
+            if (! file_exists(storage_path('app/temp'))) {
+                mkdir(storage_path('app/temp'), 0755, true);
+            }
+
+            $pdf->save($tempPath);
+
+            // 3. Envoyer le mail
+            try {
+                Mail::to($aprovisionnement->fournisseur->email)
+                    ->send(new BonDeCommandeMail($aprovisionnement, $tempPath));
+
+                $emailEnvoye = true;
+
+            } catch (\Exception $e) {
+                if (file_exists($tempPath)) unlink($tempPath);
+
+                return response()->json([
+                    'message' => "Approvisionnement mis en attente mais erreur d'envoi : " . $e->getMessage(),
+                ], 500);
+            }
+
+            // 4. Supprimer le fichier temporaire
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Approvisionnement mis en attente.'
+                . (! empty($validated['send_email']) && $aprovisionnement->fournisseur?->email
+                    ? ' Bon de commande envoyé au fournisseur.'
+                    : ''),
+        ]);
+
     }
 
     public function livrer(Aprovisionnement $aprovisionnement)

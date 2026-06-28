@@ -256,10 +256,10 @@
                                 </div>
                                 <hr>
                                 <div class="d-flex flex-column align-items-start justify-content-start gap-2">
-                                    <a href="#" class="">
+                                    <a @click="downloadPdf" class="cursor-pointer">
                                         Télécharger le PDF
                                     </a>
-                                    <a href="#">
+                                    <a @click="sendInvoiceByEmail" class="cursor-pointer">
                                         Envoyer par mail
                                     </a>
                                     <a @click="cancelledNomalizeInvoiceFunction" class="cursor-pointer">
@@ -305,6 +305,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { getSingleData, putData, deleteData, postData } from '../../plugins/api'
 import QRCode from 'qrcode'
+import axiosInstance from '../../plugins/axios'
 
 const route  = useRoute()
 const router = useRouter()
@@ -365,6 +366,71 @@ async function QrCodeFunction(qrcode){
 
     if (qrData) {
         qrImage.value = await QRCode.toDataURL(qrData)
+    }
+}
+
+async function downloadPdf() {
+    Swal.fire({
+        title: 'Génération du PDF...',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => Swal.showLoading()
+    })
+
+    try {
+        const response = await axiosInstance.get(`/invoices/${invoice.value.id}/pdf`, {
+            responseType: 'blob'  // ← crucial pour recevoir un fichier binaire
+        })
+
+        // Créer une URL temporaire depuis le blob
+        const url  = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+        const link = document.createElement('a')
+        link.href  = url
+        link.setAttribute('download', `facture-${invoice.value.invoice_number}.pdf`) // ← nom du fichier
+        document.body.appendChild(link)
+        link.click()       // ← déclenche le téléchargement automatiquement
+        link.remove()
+        window.URL.revokeObjectURL(url) // ← libère la mémoire
+
+        Swal.close()
+
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: 'Impossible de générer le PDF.',
+        })
+    }
+}
+
+async function sendInvoiceByEmail() {
+    Swal.fire({
+        title: 'Envoi en cours...',
+        text: 'Génération et envoi de la facture par email.',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => Swal.showLoading()
+    })
+
+    try {
+        const res = await postData(`/invoices/${invoice.value.id}/send-email`, {})
+
+        if(res.status === 200){
+            Swal.fire({
+                icon: 'success',
+                title: 'Email envoyé !',
+                text: res.data.message,
+                confirmButtonText: 'OK'
+            })
+        }
+
+
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.response?.data?.message || 'Une erreur est survenue.',
+        })
     }
 }
 

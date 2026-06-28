@@ -10,6 +10,10 @@ use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Mail\InvoiceMail;
+use Illuminate\Support\Facades\Mail;
 
 class InvoiceController extends Controller
 {
@@ -135,7 +139,6 @@ class InvoiceController extends Controller
             'emplacement_id'     => 'required|exists:emplacements,id',
             'due_at'             => 'required|date',
             'echeance_at'        => 'required|date',
-            'status'             => 'required',
             'is_taxable'         => 'required|boolean',
             'items'              => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -173,7 +176,6 @@ class InvoiceController extends Controller
                 'anonymous_customer_name' => $anonymousName,
                 'emplacement_id'          => $validated['emplacement_id'],
                 'due_at'                  => $validated['due_at'],
-                'status'                  => $validated['status'],
                 'echeance_at'             => $validated['echeance_at'],
                 'total_ht'                => $totalHt,
                 'total_tva'               => $totalTva,
@@ -306,6 +308,109 @@ class InvoiceController extends Controller
         });
 
         return response()->json(['message' => 'Facture supprimée avec succès.']);
+    }
+
+    public function downloadPdf(Invoice $invoice){
+        $invoice->load([
+            'client',
+            'user',
+            'emplacement',
+            'items.product',
+            'mecef' => fn($q) => $q->latest(),
+        ]);
+
+        // Générer le QR Code en base64 si la facture est normalisée
+        $qrCodeBase64 = null;
+        $mecef = $invoice->mecef->first();
+
+        if ($mecef?->qr_code) {
+            $qrCodeBase64 = base64_encode(
+                QrCode::format('svg')->size(120)->generate($mecef->qr_code)
+            );
+        }
+
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'invoice'      => $invoice,
+            'mecef'        => $mecef,
+            'qrCodeBase64' => $qrCodeBase64,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('facture-' . $invoice->invoice_number . '.pdf');
+    }
+
+    public function sendByEmail(Invoice $invoice)
+    {
+        $invoice->load([
+            'client',
+            'user',
+            'emplacement',
+            'items.product',
+            'mecef' => fn($q) => $q->latest(),
+        ]);
+
+        // Vérifier si la facture a un client avec un email
+        if (! $invoice->client) {
+            return response()->json([
+                'message' => 'Cette facture est associée à un client anonyme — aucun email à envoyer.',
+            ], 422);
+        }
+
+        if (! $invoice->client->email) {
+            return response()->json([
+                'message' => "Le client \"{$invoice->client->fullname}\" n'a pas d'adresse email enregistrée.",
+            ], 422);
+        }
+
+        // Générer le QR Code SVG si normalisée
+        $mecef     = $invoice->mecef->first();
+        $qrCodeSvg = null;
+
+        if ($mecef?->qr_code) {
+            $qrCodeSvg = QrCode::format('svg')->size(120)->generate($mecef->qr_code);
+        }
+
+        // 1. Générer le PDF
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'invoice'   => $invoice,
+            'mecef'     => $mecef,
+            'qrCodeBase64' => $qrCodeSvg,
+        ])->setPaper('a4', 'portrait');
+
+        // 2. Sauvegarder temporairement dans storage/app/temp/
+        $fileName  = 'facture-' . $invoice->invoice_number . '-' . time() . '.pdf';
+        $tempPath  = storage_path('app/temp/' . $fileName);
+
+        // Créer le dossier temp s'il n'existe pas
+        if (! file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
+        $pdf->save($tempPath);
+
+        // 3. Envoyer le mail avec le PDF en pièce jointe
+        try {
+            Mail::to($invoice->client->email)
+                ->send(new InvoiceMail($invoice, $tempPath));
+
+        } catch (\Exception $e) {
+            // Supprimer le fichier même si l'envoi échoue
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+
+            return response()->json([
+                'message' => "Erreur lors de l'envoi du mail : " . $e->getMessage(),
+            ], 500);
+        }
+
+        // 4. Supprimer le fichier temporaire après envoi
+        if (file_exists($tempPath)) {
+            unlink($tempPath);
+        }
+
+        return response()->json([
+            'message' => "Facture envoyée avec succès à {$invoice->client->email}.",
+        ]);
     }
 
     // -------------------------------------------------------------------------

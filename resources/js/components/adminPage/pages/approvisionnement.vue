@@ -498,20 +498,25 @@
         {
             title: 'Action', data: null,
             render: (data, type, row) => `
-                <a class="btn btn-info btn-sm me-1 text-white" href="#"
+                <button class="btn btn-info btn-sm me-1"
                     onclick="ShowDetailAppro(${row.id})">
                     <i class="fas fa-eye"></i>
-                </a>
+                </button>
                 ${row.status === 'brouillon' ? `
-                <a class="btn btn-success btn-sm me-1 text-white" 
+                    <button class="btn btn-primary btn-sm me-1" 
+                        onclick="EnAttenteApproFunction(${row.id}, '${row.fournisseur?.email ?? ''}')">
+                        <i class="fas fa-clock"></i>
+                    </button>
+                `:``}
+                ${row.status === 'enAttente' ? `
+                <button class="btn btn-success btn-sm me-1" 
                     onclick="LivrerApproFunction(${row.id})">
                     <i class="fas fa-check"></i>
-                </a>` : ''}
-                ${row.status === 'brouillon' ? `
-                <a class="btn btn-danger btn-sm text-white" 
+                </button>` : ''}
+                <button class="btn btn-danger btn-sm" 
                     onclick="DeleteApproFunction(${row.id})">
                     <i class="fas fa-trash"></i>
-                </a>` : ''}
+                </button>
             `
         }
     ])
@@ -617,6 +622,69 @@
         isLivraison.value = false
     }
 
+    window.EnAttenteApproFunction = async function (id, fournisseurEmail) {
+
+        // Construire le contenu du Swal selon si le fournisseur a un email
+        const htmlContent = fournisseurEmail
+            ? `
+                <p>L'approvisionnement sera mis en attente.</p>
+                <div class="form-check mt-3 text-start">
+                    <input type="checkbox" class="form-check-input" id="sendEmailCheck">
+                    <label class="form-check-label" for="sendEmailCheck">
+                        Envoyer le bon de commande au fournisseur
+                        <br><small class="text-muted">${fournisseurEmail}</small>
+                    </label>
+                </div>
+            `
+            : `<p>L'approvisionnement sera mis en attente.</p>`
+
+        const result = await Swal.fire({
+            title: 'Mettre en attente ?',
+            html: htmlContent,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#002D5D',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Confirmer',
+            cancelButtonText: 'Annuler',
+        })
+
+        if (!result.isConfirmed) return
+
+        // Récupérer l'état du checkbox après confirmation
+        const sendEmail = fournisseurEmail
+            ? document.getElementById('sendEmailCheck')?.checked ?? false
+            : false
+
+        Swal.fire({
+            title: 'Envoi en cours...',
+            text: 'Génération et envoi par email.',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading()
+        })
+
+        await putData(`/aprovisionnement/${id}/enAttente`, { send_email: sendEmail })
+            .then(res => {
+                if (res.status === 200) {
+                    Swal.fire({
+                        icon: 'success',
+                        text: res.data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    AllApproFunction()
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: err.response?.data?.message || 'Une erreur est survenue.',
+                })
+            })
+    }
+
     // Marquer livré depuis le tableau
     window.LivrerApproFunction = async function (id) {
         Swal.fire({
@@ -653,6 +721,7 @@
     }
 
     window.ShowDetailAppro = async function (id) {
+        console.log('ok')
         await getSingleData('/aprovisionnements/' + id).then(res => {
             if (res.status === 200) {
                 detailAppro.value = res.data

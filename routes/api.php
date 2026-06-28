@@ -61,12 +61,15 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel']);
     Route::post('invoices/{invoice}/normalize', [InvoiceMecefController::class, 'normalizeInvoice']);
     Route::post('invoices/{invoice}/cancelled', [InvoiceMecefController::class, 'cancelNormalizedInvoice']);
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf']);
+    Route::post('invoices/{invoice}/send-email', [InvoiceController::class, 'sendByEmail']);
 
     // Fournisseurs
     Route::apiResource('fournisseurs', FournisseurController::class);
 
     // Approvisionnements
     Route::apiResource('aprovisionnements', AprovisionnementController::class)->except(['update']);
+    Route::put('aprovisionnement/{aprovisionnement}/enAttente', [AprovisionnementController::class, 'enAttente']);
     Route::post('aprovisionnement/{aprovisionnement}/livrer', [AprovisionnementController::class, 'livrer']);
 
 
