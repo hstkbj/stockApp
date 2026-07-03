@@ -36,6 +36,7 @@ class ProductController extends Controller
 
         $products = Product::with(['rayon.category', 'fournisseur'])
             ->with(['stocks' => fn($q) => $q->where('emplacement_id', $emplacement->id)])
+            ->whereHas('stocks', fn($q) => $q->where('emplacement_id', $emplacement->id))
             ->latest()
             ->get();
 
@@ -143,7 +144,7 @@ class ProductController extends Controller
             'date_expiration' => 'nullable|date',
             'quantite'        => 'nullable|numeric|min:0',
             'image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'rayon_id'        => 'required|exists:rayons,id',
+            'rayon_id'        => 'nullable|exists:rayons,id',
         ]);
 
         if ($request->hasFile('image')) {
@@ -292,7 +293,7 @@ class ProductController extends Controller
             'fournisseur_id'  => 'nullable|exists:fournisseurs,id',
             'date_expiration' => 'nullable|date',
             'image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'rayon_id'        => 'required|exists:rayons,id',
+            'rayon_id'        => 'nullable|exists:rayons,id',
         ]);
 
         if ($request->hasFile('image')) {

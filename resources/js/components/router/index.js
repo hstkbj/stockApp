@@ -55,6 +55,14 @@ const routes = [
                 path: '/approvisionnement',
                 component: () => import('@/components/adminPage/pages/approvisionnement.vue'),
             },
+            {
+                path: '/product-magasin',
+                component: () => import('@/components/adminPage/pages/product-magasin.vue'),
+            },
+            {
+                path: '/mouvement-magasin',
+                component: () => import('@/components/adminPage/pages/mouvement-magasin.vue'),
+            },
         ]
     },
     {

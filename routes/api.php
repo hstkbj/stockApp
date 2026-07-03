@@ -14,6 +14,7 @@ use App\Http\Controllers\ProduitVenteStatsController;
 use App\Http\Controllers\RayonController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VenteController;
+use App\Http\Controllers\TransfertController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,10 @@ Route::middleware('auth:sanctum')->group(function(){
     // Mouvements
     Route::get('mouvements/filter', [MouvementController::class, 'indexByEmplacement']);
     Route::apiResource('mouvements', MouvementController::class)->except(['update']);
+
+    //Transfert
+    Route::post('/transferts/vers-magasin', [TransfertController::class, 'versMagasin']);
+    Route::post('/transferts/vers-boutique', [TransfertController::class, 'versBoutique']);
 
     // Ventes
     Route::apiResource('invoices', InvoiceController::class);

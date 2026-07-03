@@ -362,6 +362,7 @@
                         <!-- /Settings -->
                 </nav>
                     <ul class="sidebar-vertical mt-4">
+                        <li class="menu-title"><span>Gestion boutique</span></li>
                         <li >
                             <RouterLink to="/" exact-active-class="active"><i class="fe fe-home"></i> <span> Dashboard</span></RouterLink>
                         </li>
@@ -389,6 +390,19 @@
                         <li>
                             <RouterLink to="/approvisionnement" exact-active-class="active"><i class="fe fe-package"></i> <span> Approvisionnement</span></RouterLink>
                         </li>
+                        <li class="menu-title"><span>Gestion Magasin</span></li>
+
+                        <li>
+                            <RouterLink to="/product-magasin" exact-active-class="active"><i class="fe fe-box"></i> <span> Produits Magasin</span></RouterLink>
+                        </li>
+                        <li>
+                            <RouterLink to="/mouvement-magasin" exact-active-class="active"><i class="fe fe-repeat"></i> <span> Mouvement Magasin</span></RouterLink>
+                        </li>
+                        <li>
+                            <RouterLink to="/approvisionnement" exact-active-class="active"><i class="fe fe-package"></i> <span> Approvisionnement</span></RouterLink>
+                        </li>
+
+                        <li class="menu-title"><span>Gestion Utilisateur</span></li>
                         <li>
                             <RouterLink to="/role" exact-active-class="active"><i class="fe fe-shield"></i> <span> Role</span></RouterLink>
                         </li>
