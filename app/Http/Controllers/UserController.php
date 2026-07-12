@@ -12,7 +12,7 @@ class UserController extends Controller
 {
 
     public function index(){
-        $user = User::orderBy('id','desc')->get();
+        $user = User::with(['role'])->orderBy('id','desc')->get();
         return response()->json([
             'users' => $user
         ]);
@@ -90,11 +90,21 @@ class UserController extends Controller
     }
 
     public function destroy($id){
-        $data = User::find($id);
-        $user = $data->delete();
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Empêche un admin de se supprimer lui-même par erreur
+        if (Auth::id() == $user->id) {
+            return response()->json(['message' => 'Vous ne pouvez pas supprimer votre propre compte'], 422);
+        }
+
+        $user->delete();
+
         return response()->json([
-            'user' => $user
-         ]);
+            'message' => 'Utilisateur supprimé avec succès'
+        ], 200);
     }
 
     public function login(Request $request){

@@ -41,7 +41,7 @@ class TransfertController extends Controller
         $emplacementSource = Emplacement::where('nom', $nomSource)->firstOrFail();
         $emplacementDestination = Emplacement::where('nom', $nomDestination)->firstOrFail();
 
-        $mouvement = DB::transaction(function () use ($validated, $emplacementSource, $emplacementDestination) {
+        [$mouvementSortie, $mouvementEntree] = DB::transaction(function () use ($validated, $emplacementSource, $emplacementDestination) {
 
             // Stock source : créé à 0 s'il n'existe pas encore
             $stockSource = Stock::firstOrCreate(
@@ -51,7 +51,7 @@ class TransfertController extends Controller
                 ],
                 [
                     'quantite'     => 0,
-                    'seuil_alerte' => 10, // valeur par défaut, adapte selon ton besoin
+                    'seuil_alerte' => 10,
                 ]
             );
 
@@ -74,20 +74,39 @@ class TransfertController extends Controller
             $stockSource->decrement('quantite', $validated['quantite']);
             $stockDestination->increment('quantite', $validated['quantite']);
 
-            return Mouvement::create([
+            // Mouvement de SORTIE côté source
+            $mouvementSortie = Mouvement::create([
                 'product_id'                 => $validated['product_id'],
                 'emplacement_id'              => $emplacementSource->id,
                 'emplacement_destination_id'  => $emplacementDestination->id,
                 'quantite'                    => $validated['quantite'],
-                'type'                        => 'transfert',
+                'type'                        => 'sortie',
                 'date'                        => $validated['date'],
-                'motif'                       => $validated['motif'] ?? null,
+                'motif'                       => $validated['motif'] ?? 'Transfert vers ' . $emplacementDestination->nom,
                 'user_id'                     => auth()->id(),
             ]);
+
+            // Mouvement d'ENTRÉE côté destination
+            $mouvementEntree = Mouvement::create([
+                'product_id'                 => $validated['product_id'],
+                'emplacement_id'              => $emplacementDestination->id,
+                'emplacement_destination_id'  => $emplacementSource->id,
+                'quantite'                    => $validated['quantite'],
+                'type'                        => 'entree',
+                'date'                        => $validated['date'],
+                'motif'                       => $validated['motif'] ?? 'Transfert depuis ' . $emplacementSource->nom,
+                'user_id'                     => auth()->id(),
+            ]);
+
+            return [$mouvementSortie, $mouvementEntree];
         });
 
-        $mouvement->load(['product', 'user', 'emplacement', 'emplacementDestination']);
+        $mouvementSortie->load(['product', 'user', 'emplacement', 'emplacementDestination']);
+        $mouvementEntree->load(['product', 'user', 'emplacement', 'emplacementDestination']);
 
-        return response()->json($mouvement, 200);
+        return response()->json([
+            'sortie' => $mouvementSortie,
+            'entree' => $mouvementEntree,
+        ], 200);
     }
 }

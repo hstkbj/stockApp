@@ -63,6 +63,14 @@ const routes = [
                 path: '/mouvement-magasin',
                 component: () => import('@/components/adminPage/pages/mouvement-magasin.vue'),
             },
+            {
+                path: '/role',
+                component: () => import('@/components/adminPage/pages/role.vue'),
+            },
+            {
+                path:'/user',
+                component: () => import('@/components/adminPage/pages/user.vue'),
+            }
         ]
     },
     {

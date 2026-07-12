@@ -14,14 +14,32 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $roles = ['Admin', 'Superadmin', 'Gerant', 'Caisse','Accueil'];
+        $roles = ['Admin', 'Superadmin', 'Gerant', 'Caisse', 'Accueil'];
+        $pages = config('app_pages', []);
 
-        foreach ($roles as $role) {
-            DB::table('roles')->insert([
-                'name' => $role,
+        foreach ($roles as $roleName) {
+            $roleId = DB::table('roles')->insertGetId([
+                'name'       => $roleName,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
+
+            // Accès complet automatique pour Admin & Superadmin
+            $fullAccess = in_array($roleName, ['Admin', 'Superadmin']);
+
+            foreach ($pages as $routeName => $label) {
+                DB::table('permissions')->insert([
+                    'role_id'     => $roleId,
+                    'route_name'  => $routeName,
+                    'create'      => $fullAccess,
+                    'read'        => $fullAccess,
+                    'update'      => $fullAccess,
+                    'delete'      => $fullAccess,
+                    'access_page' => $fullAccess,
+                    'created_at'  => Carbon::now(),
+                    'updated_at'  => Carbon::now(),
+                ]);
+            }
         }
     }
 }

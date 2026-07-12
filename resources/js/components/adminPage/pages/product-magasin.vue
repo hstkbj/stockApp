@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table-responsive">
+                        <div class="table">
                             <DataTable :data="allProduct" :columns="columns"/>
                         </div>
                     </div>
@@ -131,6 +131,51 @@
             </div>
         </div>
 
+        <div class="modal modal-top fade" id="transfertModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form class="modal-content" @submit.prevent="TransfertFunction">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Transférer vers la boutique</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Produit</label>
+                            <input type="text" class="form-control" :value="transfertProductNom" disabled>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Quantité à transférer</label>
+                            <input type="number" min="1" :class="isEmptyTransfert.quantite ? 'is-invalid border border-danger' : ''" v-model="transfertData.quantite" class="form-control" placeholder="Ex: 10">
+                            <div v-if="isEmptyTransfert.quantite" class="invalid-feedback">
+                                {{ msgInputTransfert.quantite }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" :class="isEmptyTransfert.date ? 'is-invalid border border-danger' : ''" v-model="transfertData.date" class="form-control">
+                            <div v-if="isEmptyTransfert.date" class="invalid-feedback">
+                                {{ msgInputTransfert.date }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Motif (optionnel)</label>
+                            <textarea class="form-control" v-model="transfertData.motif" rows="2" placeholder="Ex: Réapprovisionnement boutique"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">Fermé</button>
+                        <button type="submit" class="btn btn-primary" :disabled="isTransfertLoader">
+                            <span v-if="!isTransfertLoader">Transférer</span>
+                            <span v-else><i class="fas fa-spinner fa-spin"></i></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 </template>
 <script setup>
@@ -141,6 +186,7 @@
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
 
     let addmodal;
+    let transfertmodal;
 
     const data = ref({
         id:'',
@@ -155,6 +201,17 @@
         image:'',
         rayon_id:'',
     })
+
+    const transfertData = ref({
+        product_id: '',
+        quantite: '',
+        date: '',
+        motif: '',
+    })
+    const transfertProductNom = ref('')
+    const isEmptyTransfert = ref({})
+    const msgInputTransfert = ref({})
+    const isTransfertLoader = ref(false)
 
     const isEmpty = ref({})
     const imagePreview = ref('')
@@ -305,6 +362,7 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#"><i class="fe fe-eye me-2"></i> Détails</a></li>
                         <li><a class="dropdown-item cursor-pointer" onclick="ShowProductFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>
+                        <li><a class="dropdown-item cursor-pointer" onclick="ShowTransfertModal(${row.id}, '${row.nom.replace(/'/g, "\\'")}')"><i class="fe fe-repeat me-2"></i> Transférer</a></li>
                         <li><a class="dropdown-item cursor-pointer" onclick="DeleteProductFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
                     </ul>
                 </div>
@@ -405,6 +463,54 @@
         })
     }
 
+    window.ShowTransfertModal = function(productId, productNom){
+        transfertData.value = {
+            product_id: productId,
+            quantite: '',
+            date: new Date().toISOString().split('T')[0], // date du jour par défaut
+            motif: '',
+        }
+        transfertProductNom.value = productNom
+        isEmptyTransfert.value = {}
+        msgInputTransfert.value = {}
+        transfertmodal.show()
+    }
+
+    async function TransfertFunction() {
+        isEmptyTransfert.value = {
+            quantite: !transfertData.value.quantite,
+            date: !transfertData.value.date,
+        }
+        msgInputTransfert.value = {
+            quantite: 'Veuillez indiquer une quantité',
+            date: 'Veuillez indiquer une date',
+        }
+
+        const allEmpty = Object.values(isEmptyTransfert.value).every(v => v === false);
+        if (!allEmpty) return;
+
+        isTransfertLoader.value = true;
+        await postData('/transferts/vers-boutique', transfertData.value).then(res => {
+            if (res.status === 200) {
+                isTransfertLoader.value = false;
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Transfert effectué avec succès',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                AllProductsFunction()
+                transfertmodal.hide()
+            }
+        }).catch(err => {
+            isTransfertLoader.value = false;
+            Swal.fire({
+                icon: 'error',
+                text: err.response?.data?.message || 'Une erreur est survenue lors du transfert',
+            });
+        })
+    }
+
     window.DeleteProductFunction = async function(id){
         Swal.fire({
             title: "Voulez-vous supprimez ce produit ?",
@@ -448,6 +554,7 @@
 
     onMounted(()=>{
         addmodal = new bootstrap.Modal(document.getElementById('productModal'));
+        transfertmodal = new bootstrap.Modal(document.getElementById('transfertModal'));
         AllProductsFunction()
         AllRayonFunction()
         AllFournisseurFunction()
