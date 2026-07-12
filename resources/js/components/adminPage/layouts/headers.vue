@@ -51,85 +51,55 @@
 
             <!-- Header Menu -->
             <ul class="nav nav-tabs user-menu">
-                
-                <!-- /Flag -->
-                <li class="nav-item dropdown  flag-nav dropdown-heads">
+
+                <!-- Notifications -->
+                <li class="nav-item dropdown flag-nav dropdown-heads">
                     <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button">
-                        <i class="fe fe-bell"></i> <span class="badge rounded-pill"></span>
+                        <i class="fe fe-bell"></i>
+                        <span v-if="unreadCount > 0" class="badge rounded-pill bg-danger">{{ unreadCount }}</span>
                     </a>
                     <div class="dropdown-menu notifications">
                         <div class="topnav-dropdown-header">
-                            <div class="notification-title">Notifications <a href="notifications.html">View all</a></div>
-                            <a href="javascript:void(0)" class="clear-noti d-flex align-items-center">Mark all as read <i class="fe fe-check-circle"></i></a>
+                            <div class="notification-title">Notifications</div>
+                            <a href="javascript:void(0)" class="clear-noti d-flex align-items-center" @click="markAllAsRead">
+                                Tout marquer comme lu <i class="fe fe-check-circle"></i>
+                            </a>
                         </div>
                         <div class="noti-content">
-                            <ul class="notification-list">
-                                <li class="notification-message">
-                                    <a href="profile.html">
+                            <ul class="notification-list" v-if="notifications.length > 0">
+                                <li
+                                    v-for="notif in notifications"
+                                    :key="notif.id"
+                                    class="notification-message"
+                                >
+                                    <a href="javascript:void(0)" @click="openNotificationModal(notif)">
                                         <div class="d-flex">
-                                            <span class="avatar avatar-md active">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-02.jpg">
+                                            <span class="avatar avatar-md" :class="{ active: !notif.read_at }">
+                                                <i
+                                                    class="fe fe-alert-triangle d-flex align-items-center justify-content-center h-100"
+                                                    :class="notif.data.rupture ? 'text-danger' : 'text-warning'"
+                                                ></i>
                                             </span>
                                             <div class="media-body">
-                                                <p class="noti-details"><span class="noti-title">Lex Murphy</span> requested access to <span class="noti-title">UNIX directory tree hierarchy</span></p>
-                                                <div class="notification-btn">
-                                                    <span class="btn btn-primary">Accept</span>
-                                                    <span class="btn btn-outline-primary">Reject</span>
-                                                </div>
-                                                <p class="noti-time"><span class="notification-time">Today at 9:42 AM</span></p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li class="notification-message">
-                                    <a href="profile.html">
-                                        <div class="d-flex">
-                                            <span class="avatar avatar-md active">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-10.jpg">
-                                            </span>
-                                            <div class="media-body">
-                                                <p class="noti-details"><span class="noti-title">Ray Arnold</span> left 6 comments <span class="noti-title">on Isla Nublar SOC2 compliance report</span></p>
-                                                <p class="noti-time"><span class="notification-time">Yesterday at 11:42 PM</span></p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li class="notification-message">
-                                    <a href="profile.html">
-                                        <div class="d-flex">
-                                            <span class="avatar avatar-md">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-13.jpg">
-                                            </span>
-                                            <div class="media-body">
-                                                <p class="noti-details"><span class="noti-title">Dennis Nedry</span> commented on <span class="noti-title"> Isla Nublar SOC2 compliance report</span></p>
-                                                <blockquote>
-                                                    “Oh, I finished de-bugging the phones, but the system's compiling for eighteen minutes, or twenty.  So, some minor systems may go on and off for a while.”
-                                                </blockquote>
-                                                <p class="noti-time"><span class="notification-time">Yesterday at 5:42 PM</span></p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li class="notification-message">
-                                    <a href="profile.html">
-                                        <div class="d-flex">
-                                            <span class="avatar avatar-md">
-                                                <img class="avatar-img rounded-circle" alt="avatar-img" src="/assets/img/profiles/avatar-05.jpg">
-                                            </span>
-                                            <div class="media-body">
-                                                <p class="noti-details"><span class="noti-title">John Hammond</span> created <span class="noti-title">Isla Nublar SOC2 compliance report</span></p>
-                                                <p class="noti-time"><span class="notification-time">Last Wednesday at 11:15 AM</span></p>
+                                                <p class="noti-details">
+                                                    <span class="noti-title">{{ notif.data.title }}</span> — {{ notif.data.message }}
+                                                </p>
+                                                <p class="noti-time">
+                                                    <span class="notification-time">{{ formatRelative(notif.created_at) }}</span>
+                                                    <span v-if="!notif.read_at" class="badge bg-primary ms-2">Non lue</span>
+                                                </p>
                                             </div>
                                         </div>
                                     </a>
                                 </li>
                             </ul>
-                        </div>
-                        <div class="topnav-dropdown-footer">
-                            <a href="#">Clear All</a>
+                            <div v-else class="text-center text-muted py-4">
+                                Aucune notification
+                            </div>
                         </div>
                     </div>
                 </li>
+
                 <li class="nav-item  has-arrow dropdown-heads ">
                     <a href="javascript:void(0);" class="win-maximize">
                         <i class="fe fe-maximize"></i>
@@ -178,6 +148,71 @@
         </div>
     <!-- /Header -->
 
+    <!-- Modal Détail Notification -->
+    <div class="modal modal-top fade" id="notificationDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" v-if="selectedNotification">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">{{ selectedNotification.data.title }}</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{{ selectedNotification.data.message }}</p>
+
+                    <div class="table-responsive mt-3" v-if="selectedNotification.data.nom">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th>Produit</th>
+                                    <td>{{ selectedNotification.data.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Code barre</th>
+                                    <td>#{{ selectedNotification.data.code_barre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Emplacement</th>
+                                    <td class="text-capitalize">{{ selectedNotification.data.emplacement }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Stock actuel</th>
+                                    <td>{{ selectedNotification.data.quantite }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Seuil d'alerte</th>
+                                    <td>{{ selectedNotification.data.seuil_alerte }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td>
+                                        <span class="badge" :class="selectedNotification.data.rupture ? 'bg-danger' : 'bg-warning text-dark'">
+                                            {{ selectedNotification.data.rupture ? 'Rupture de stock' : 'Seuil atteint' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="text-muted mt-3 mb-0">
+                        <small>Reçue {{ formatRelative(selectedNotification.created_at) }}</small>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <RouterLink
+                        v-if="selectedNotification.data.product_id"
+                        to="/product"
+                        class="btn btn-primary"
+                        data-bs-dismiss="modal"
+                    >
+                        Voir le produit
+                    </RouterLink>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </template>
 <script setup>
 
@@ -186,9 +221,70 @@
     import { isAuthenticated } from '../../router';
 
     const currentUser = ref({})
+    const notifications = ref([])
+    const unreadCount = ref(0)
+    const selectedNotification = ref(null)
+
+    let notificationModal
+    let pollingInterval
 
     async function Userinfo() {
         currentUser.value = await isAuthenticated()
+    }
+
+    async function AllNotificationsFunction() {
+        await getData('/notifications').then(res => {
+            if (res.status === 200) {
+                notifications.value = res.data.notifications
+                unreadCount.value   = res.data.unread_count
+            }
+        })
+    }
+
+    function openNotificationModal(notif) {
+        selectedNotification.value = notif
+        notificationModal.show()
+
+        // Marquer comme lue à l'ouverture du modal
+        if (!notif.read_at) {
+            markAsRead(notif.id)
+        }
+    }
+
+    async function markAsRead(id) {
+        await putData(`/notifications/${id}/read`, {}).then(() => {
+            const notif = notifications.value.find(n => n.id === id)
+            if (notif && !notif.read_at) {
+                notif.read_at = new Date().toISOString()
+                unreadCount.value = Math.max(0, unreadCount.value - 1)
+            }
+        })
+    }
+
+    async function markAllAsRead() {
+        await putData('/notifications/read-all', {}).then(() => {
+            notifications.value.forEach(n => {
+                if (!n.read_at) n.read_at = new Date().toISOString()
+            })
+            unreadCount.value = 0
+        })
+    }
+
+    function formatRelative(dateStr) {
+        const date = new Date(dateStr)
+        const now  = new Date()
+        const diffMs = now - date
+        const diffMin = Math.floor(diffMs / 60000)
+
+        if (diffMin < 1) return "à l'instant"
+        if (diffMin < 60) return `il y a ${diffMin} min`
+        const diffH = Math.floor(diffMin / 60)
+        if (diffH < 24) return `il y a ${diffH}h`
+        const diffJ = Math.floor(diffH / 24)
+        if (diffJ === 1) return 'hier'
+        if (diffJ < 7) return `il y a ${diffJ}j`
+
+        return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(date)
     }
 
     async function LogoutFunction() {
@@ -203,9 +299,19 @@
 
     onMounted(()=>{
         Userinfo()
+        AllNotificationsFunction()
+        notificationModal = new bootstrap.Modal(document.getElementById('notificationDetailModal'))
+
+        // Rafraîchit la liste toutes les 60 secondes pour voir les nouvelles alertes sans recharger la page
+        pollingInterval = setInterval(AllNotificationsFunction, 60000)
+    })
+
+    onBeforeUnmount(()=>{
+        if (pollingInterval) clearInterval(pollingInterval)
     })
 
 </script>
 <style lang="">
 
 </style>
+

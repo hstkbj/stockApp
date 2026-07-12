@@ -156,14 +156,14 @@
                                     </div>
                                 </div>
 
-                                <div class="mecefData" v-if="invoice.mecef">
+                                <div class="mecefData" v-if="invoice.mecef && invoice.mecef.length > 0">
                                     <div class="qrcode">
                                         <img v-if="qrImage" :src="qrImage" />
                                     </div>
                                     <div class="data">
                                         <div class="d-flex flex-column align-items-center justify-content-center mb-2">
                                             <span>Code MECeF/DGI</span>
-                                            <span class="fw-bold">{{ invoice.mecef[0].code_mecef_dgi }}</span>
+                                            <span class="fw-bold">{{ invoice.mecef[0]?.code_mecef_dgi }}</span>
                                         </div>
                                         <div class="other w-100 d-flex align-items-center justify-content-between">
                                             <div class="titles">
@@ -172,9 +172,9 @@
                                                 <p>MECeF Heure:</p>
                                             </div>
                                             <div class="titleData">
-                                                <p class="fw-bold text-end">{{ invoice.mecef[0].nim }}</p>
-                                                <p class="fw-bold text-end">{{ invoice.mecef[0].counters }}</p>
-                                                <p class="fw-bold text-end">{{ formatDateMecef(invoice.mecef[0].mecef_datetime) }}</p>
+                                                <p class="fw-bold text-end">{{ invoice.mecef[0]?.nim }}</p>
+                                                <p class="fw-bold text-end">{{ invoice.mecef[0]?.counters }}</p>
+                                                <p class="fw-bold text-end">{{ formatDateMecef(invoice.mecef[0]?.mecef_datetime) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -217,8 +217,8 @@
                                         Total TTC : <strong class="text-primary">{{ formatCurrency(invoice.total_ttc) }}</strong>
                                     </p>
                                 </div>
-                                <hr v-if="invoice.mecef[0].status !== 'confirmed'">
-                                <div class="normalize mb-3" v-if="invoice.mecef[0].status !== 'confirmed'">
+                                <hr v-if="invoice.mecef[0]?.status !== 'confirmed'">
+                                <div class="normalize mb-3" v-if="invoice.mecef[0]?.status !== 'confirmed'">
                                     <strong class="customer-text-one">Normalisation<span> :</span></strong>
                                     <form @submit.prevent="NormalizeInvoiceFunction">
                                         <div class="row">
@@ -469,7 +469,11 @@ async function loadInvoice() {
         if (res.status === 200) {
             invoice.value        = res.data
             selectedStatus.value = res.data.status
-            QrCodeFunction(invoice.value.mecef[0].qr_code)
+            // Protection : mecef peut être absent ou vide
+            const qrCode = invoice.value.mecef?.[0]?.qr_code
+            if (qrCode) {
+                QrCodeFunction(qrCode)
+            }
         }
     } catch (error) {
         Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de charger la facture.' })
@@ -571,7 +575,7 @@ async function NormalizeInvoiceFunction(){
     const allEmpty = Object.values(isEmpty.value).every(value => value === false);
 
     if (allEmpty) {
-        
+
         Swal.fire({
             title: "Voulez-vous normalisé cette facture ?",
             text: "...",

@@ -24,6 +24,7 @@ class ProductController extends Controller
 
         $products = Product::with(['rayon.category', 'fournisseur'])
             ->with(['stocks' => fn($q) => $q->where('emplacement_id', $emplacement->id)])
+            ->whereHas('stocks', fn($q) => $q->where('emplacement_id', $emplacement->id))
             ->latest()
             ->get();
 

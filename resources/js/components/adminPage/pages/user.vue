@@ -232,7 +232,6 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Utilisateur créé avec succès',
-                    html: `Mot de passe généré : <b class="user-select-all">${res.data.password}</b><br><small class="text-danger">Notez-le, il ne sera plus affiché.</small>`,
                     confirmButtonText: 'Compris'
                 });
             }

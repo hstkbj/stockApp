@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Mail\UserCredentialsMail;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -45,9 +47,20 @@ class UserController extends Controller
             'password' => bcrypt($password),
         ]);
 
+        $user->load('role');
+
+        // Envoi des identifiants par email (best-effort : on ne bloque pas la création si l'email échoue)
+        $emailEnvoye = true;
+        try {
+            Mail::to($user->email)->send(new UserCredentialsMail($user, $password));
+        } catch (\Exception $e) {
+            $emailEnvoye = false;
+        }
+
         return response()->json([
             'status' => 200,
-            'user' => $user
+            'user' => $user, // pour debug, à retirer en production
+            'email_envoye' => $emailEnvoye,
         ]);
 
     }

@@ -385,6 +385,9 @@
                             <RouterLink to="/vente" exact-active-class="active"><i class="fe fe-shopping-cart"></i> <span> Vente</span></RouterLink>
                         </li>
                         <li>
+                            <RouterLink to="/inventaire" exact-active-class="active"><i class="fe fe-clipboard"></i> <span> Inventaire</span></RouterLink>
+                        </li>
+                        <li>
                             <RouterLink to="/fournisseur" exact-active-class="active"><i class="fe fe-truck"></i> <span> Fournisseur</span></RouterLink>
                         </li>
                         <li>

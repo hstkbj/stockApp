@@ -16,6 +16,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VenteController;
 use App\Http\Controllers\TransfertController;
+use App\Http\Controllers\InventaireController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,9 @@ Route::middleware('auth:sanctum')->group(function(){
 
     // Rayon
     Route::apiResource('rayons', RayonController::class);
+
+    //Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     // Produits
     Route::get('products/boutique', [ProductController::class, 'indexProductBoutique']);
@@ -93,6 +97,14 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('/roles/{id}', [RoleController::class, 'update']);
     Route::put('/roles/{id}/permissions', [RoleController::class, 'updatePermissions']);
     Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+
+    //Inventaire
+    Route::get('/inventaire', [InventaireController::class, 'index']);
+
+    //Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
 
 });

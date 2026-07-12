@@ -14,4 +14,5 @@ return [
     'approvisionnement'    => 'Approvisionnements',
     'role'                 => 'Rôles',
     'user'                 => 'Utilisateurs',
+    'inventaire'           => 'Inventaire',
 ];

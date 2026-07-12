@@ -70,6 +70,10 @@ const routes = [
             {
                 path:'/user',
                 component: () => import('@/components/adminPage/pages/user.vue'),
+            },
+            {
+                path:'/inventaire',
+                component: () => import('@/components/adminPage/pages/inventaire.vue'),
             }
         ]
     },
