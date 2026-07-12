@@ -8,10 +8,11 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Mouvement;
 use App\Models\Stock;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-     public function index()
+    public function index()
     {
         $now = now();
 
@@ -30,21 +31,19 @@ class DashboardController extends Controller
 
         $nbAlertes = Stock::whereColumn('quantite', '<=', 'seuil_alerte')->count();
 
-        // ── 2. Montant total par mois (12 derniers mois) ──────────
-        $ventesParMois = Invoice::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as mois, SUM(total_ttc) as total")
+        // ── 2. Montant total par mois (année civile en cours : Janvier → Décembre) ──
+        $ventesParMois = Invoice::selectRaw('MONTH(created_at) as mois_num, SUM(total_ttc) as total')
             ->where('status', '!=', 'cancelled')
-            ->where('created_at', '>=', $now->copy()->subMonths(11)->startOfMonth())
-            ->groupBy('mois')
+            ->whereYear('created_at', $now->year)
+            ->groupBy('mois_num')
             ->get();
 
         $chartMontants = [];
-        for ($i = 11; $i >= 0; $i--) {
-            $date = $now->copy()->subMonths($i);
-            $key  = $date->format('Y-m');
-            $montant = $ventesParMois->firstWhere('mois', $key)->total ?? 0;
+        for ($m = 1; $m <= 12; $m++) {
+            $montant = $ventesParMois->firstWhere('mois_num', $m)->total ?? 0;
 
             $chartMontants[] = [
-                'mois'    => $date->translatedFormat('M Y'),
+                'mois'    => Carbon::create($now->year, $m, 1)->translatedFormat('M Y'),
                 'montant' => (float) $montant,
             ];
         }

@@ -89,6 +89,7 @@
                         </div>
                         <div class="card-body">
                             <apexchart
+                                key="montant-chart"
                                 type="area"
                                 height="320"
                                 :options="montantChartOptions"
@@ -105,6 +106,7 @@
                         <div class="card-body">
                             <apexchart
                                 v-if="topProduits.length > 0"
+                                key="donut-chart"
                                 type="donut"
                                 height="320"
                                 :options="donutChartOptions"
@@ -267,7 +269,12 @@
     }])
 
     const montantChartOptions = computed(() => ({
-        chart: { toolbar: { show: false }, zoom: { enabled: false } },
+        chart: {
+            id: 'montant-chart',            // ID unique et stable : évite les collisions SVG (defs/gradients)
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            animations: { enabled: false }, // évite les conflits de rendu SVG au montage/démontage en SPA
+        },
         colors: ['#002D5D'],
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 3 },
@@ -291,6 +298,10 @@
     const donutChartSeries = computed(() => topProduits.value.map(p => p.total_vendu))
 
     const donutChartOptions = computed(() => ({
+        chart: {
+            id: 'donut-chart',              // ID unique et stable
+            animations: { enabled: false },
+        },
         labels: topProduits.value.map(p => p.nom),
         colors: ['#002D5D', '#28a745', '#ffc107', '#17a2b8', '#dc3545'],
         legend: { position: 'bottom' },
