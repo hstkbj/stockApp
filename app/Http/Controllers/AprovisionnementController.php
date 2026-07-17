@@ -106,28 +106,36 @@ class AprovisionnementController extends Controller
         DB::beginTransaction();
 
         try {
-            // Annuler l'effet sur le stock
-            foreach ($aprovisionnement->items as $item) {
-                $product = $item->product;
+            // On n'ajuste le stock QUE si l'appro avait été livré (donc avait impacté le stock)
+            if ($aprovisionnement->status === 'livrer') {
+                foreach ($aprovisionnement->items as $item) {
+                    $product = $item->product;
 
-                if ($product->quantite < $item->quantite) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => "Stock insuffisant pour annuler l'approvisionnement du produit : {$product->nom}"
-                    ], 422);
+                    if ($product->quantite < $item->quantite) {
+                        DB::rollBack();
+                        return response()->json([
+                            'message' => "Stock insuffisant pour annuler l'approvisionnement du produit : {$product->nom}"
+                        ], 422);
+                    }
+
+                    $product->decrement('quantite', $item->quantite);
                 }
 
-                $product->decrement('quantite', $item->quantite);
-            }
+                // Décrémenter aussi le Stock par emplacement (celui utilisé dans livrer())
+                foreach ($aprovisionnement->items as $item) {
+                    Stock::where('product_id', $item->product_id)
+                        ->where('emplacement_id', $aprovisionnement->emplacement_id)
+                        ->decrement('quantite', $item->quantite);
+                }
 
-            // Supprimer les mouvements liés
-            Mouvement::where('motif', 'Approvisionnement ' . $aprovisionnement->reference)->delete();
+                Mouvement::where('motif', 'Approvisionnement ' . $aprovisionnement->reference)->delete();
+            }
 
             $aprovisionnement->items()->delete();
             $aprovisionnement->delete();
 
             DB::commit();
-            return response()->json(['message' => 'Approvisionnement annulé et stock ajusté.']);
+            return response()->json(['message' => 'Approvisionnement annulé' . ($aprovisionnement->status === 'livrer' ? ' et stock ajusté.' : '.')]);
 
         } catch (\Exception $e) {
             DB::rollBack();

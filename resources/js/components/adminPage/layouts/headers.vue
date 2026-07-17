@@ -199,15 +199,15 @@
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
-                    <RouterLink
+                    <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">Fermer</button>
+                    <button
                         v-if="selectedNotification.data.product_id"
-                        to="/product"
                         class="btn btn-primary"
-                        data-bs-dismiss="modal"
+                        type="button"
+                        @click="goToProduct"
                     >
                         Voir le produit
-                    </RouterLink>
+                    </button>
                 </div>
             </div>
         </div>
@@ -216,20 +216,41 @@
 </template>
 <script setup>
 
-    import { onBeforeUnmount, onMounted, ref } from 'vue';
+    import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
     import { getData, putData, postData } from '../../plugins/api';
     import { isAuthenticated } from '../../router';
+    import { useRouter } from 'vue-router'
+
 
     const currentUser = ref({})
     const notifications = ref([])
     const unreadCount = ref(0)
     const selectedNotification = ref(null)
+    const router = useRouter()
+
+
 
     let notificationModal
     let pollingInterval
 
     async function Userinfo() {
         currentUser.value = await isAuthenticated()
+    }
+
+    const productDetailsLink = computed(() => {
+        if (!selectedNotification.value) return '/product'
+
+        const isMagasin = selectedNotification.value.data.emplacement === 'magasin'
+
+        return {
+            path: isMagasin ? '/product-magasin' : '/product',
+            query: { highlight: selectedNotification.value.data.product_id }
+        }
+    })
+
+    function goToProduct() {
+        notificationModal.hide()
+        router.push(productDetailsLink.value)
     }
 
     async function AllNotificationsFunction() {

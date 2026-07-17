@@ -176,6 +176,75 @@
             </div>
         </div>
 
+        <div class="modal modal-top fade" id="detailsModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Détails du produit</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="isDetailsLoading" class="text-center py-4">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        </div>
+                        <div v-else class="row">
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Code barre</label>
+                                <p class="fw-bold">{{ detailsProduct.code_barre || '—' }}</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Nom</label>
+                                <p class="fw-bold">{{ detailsProduct.nom || '—' }}</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Prix d'achat</label>
+                                <p class="fw-bold">{{ Number(detailsProduct.prix_achat || 0).toLocaleString('fr-FR') }} FCFA</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Prix de vente</label>
+                                <p class="fw-bold">{{ Number(detailsProduct.prix_unitaire || 0).toLocaleString('fr-FR') }} FCFA</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Quantité en stock</label>
+                                <p class="fw-bold">{{ detailsProduct.stocks?.[0]?.quantite ?? '—' }}</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Seuil d'alerte</label>
+                                <p class="fw-bold">{{ detailsProduct.stocks?.[0]?.seuil_alerte ?? '—' }}</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Rayon</label>
+                                <p class="fw-bold">{{ detailsProduct.rayon?.nom || '—' }}</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Fournisseur</label>
+                                <p class="fw-bold">{{ detailsProduct.fournisseur?.nom || '—' }}</p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Date d'expiration</label>
+                                <p class="fw-bold">
+                                    {{ detailsProduct.date_expiration
+                                        ? new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(detailsProduct.date_expiration))
+                                        : '—' }}
+                                </p>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label text-muted">Créé le</label>
+                                <p class="fw-bold">
+                                    {{ detailsProduct.created_at
+                                        ? new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(detailsProduct.created_at))
+                                        : '—' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 <script setup>
@@ -184,9 +253,14 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { useRoute, useRouter } from 'vue-router'
 
     let addmodal;
     let transfertmodal;
+    let detailsmodal;
+
+    const route = useRoute()
+    const router = useRouter()
 
     const data = ref({
         id:'',
@@ -223,6 +297,8 @@
     const allProduct = ref([])
     const allRayon = ref([])
     const allFournisseur = ref([])
+    const detailsProduct = ref({})
+    const isDetailsLoading = ref(false)
 
     function showModal(){
         addmodal.show();
@@ -360,7 +436,7 @@
                     </a>
 
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#"><i class="fe fe-eye me-2"></i> Détails</a></li>
+                        <li><a class="dropdown-item cursor-pointer" onclick="ShowDetailsFunction(${row.id})"><i class="fe fe-eye me-2"></i> Détails</a></li>
                         <li><a class="dropdown-item cursor-pointer" onclick="ShowProductFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>
                         <li><a class="dropdown-item cursor-pointer" onclick="ShowTransfertModal(${row.id}, '${row.nom.replace(/'/g, "\\'")}')"><i class="fe fe-repeat me-2"></i> Transférer</a></li>
                         <li><a class="dropdown-item cursor-pointer" onclick="DeleteProductFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
@@ -476,6 +552,20 @@
         transfertmodal.show()
     }
 
+    window.ShowDetailsFunction = async function(id){
+        detailsProduct.value = {}
+        isDetailsLoading.value = true
+        detailsmodal.show()
+
+        await getSingleData('/products/'+id).then(res=>{
+            if (res.status === 200) {
+                detailsProduct.value = res.data
+            }
+        }).finally(()=>{
+            isDetailsLoading.value = false
+        })
+    }
+
     async function TransfertFunction() {
         isEmptyTransfert.value = {
             quantite: !transfertData.value.quantite,
@@ -555,9 +645,18 @@
     onMounted(()=>{
         addmodal = new bootstrap.Modal(document.getElementById('productModal'));
         transfertmodal = new bootstrap.Modal(document.getElementById('transfertModal'));
+        detailsmodal = new bootstrap.Modal(document.getElementById('detailsModal'));
         AllProductsFunction()
         AllRayonFunction()
         AllFournisseurFunction()
+
+        // Ouvre automatiquement le modal détails si on arrive depuis une notification
+        if (route.query.highlight) {
+            window.ShowDetailsFunction(route.query.highlight)
+
+            // Nettoie l'URL pour éviter que le modal se rouvre à chaque refresh
+            router.replace({ query: {} })
+        }
     })
 
 </script>

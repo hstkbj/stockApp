@@ -62,7 +62,9 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::post('products/magasinStore', [ProductController::class,  'storeProductMagasin']);
     Route::put   ('products/boutiquePut/{product}',[ProductController::class, 'updateProductBoutique']);
     Route::put   ('products/magasinPut/{product}', [ProductController::class,  'updateProductMagasin']);
-    Route::apiResource('products', ProductController::class);
+    Route::get('/products/{product}', [ProductController::class, 'showBoutique']);
+    Route::get('/products-magasin/{product}', [ProductController::class, 'showMagasin']);
+    Route::apiResource('products', ProductController::class)->except('show');
 
     // Mouvements
     Route::get('mouvements/filter', [MouvementController::class, 'indexByEmplacement']);

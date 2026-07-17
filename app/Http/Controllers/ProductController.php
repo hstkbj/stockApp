@@ -177,17 +177,34 @@ class ProductController extends Controller
         return response()->json($product, 200);
     }
 
-    public function show(Product $product)
+    public function showBoutique(Product $product)
     {
+        return $this->showParEmplacement($product, 'boutique');
+    }
+
+    public function showMagasin(Product $product)
+    {
+        return $this->showParEmplacement($product, 'magasin');
+    }
+
+    protected function showParEmplacement(Product $product, string $emplacementNom)
+    {
+        $emplacement = Emplacement::where('nom', $emplacementNom)->firstOrFail();
+
         $product->load([
             'rayon.category',
             'user',
             'fournisseur',
-            'stocks.emplacement',
             'mouvements.user',
             'mouvements.emplacement',
             'mouvements.emplacementDestination',
         ]);
+
+        $product->setRelation('stocks', $product->stocks()
+            ->where('emplacement_id', $emplacement->id)
+            ->with('emplacement')
+            ->get()
+        );
 
         return response()->json($product);
     }

@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Vérification quotidienne des stocks en alerte
-Schedule::command('stock:check-alerts')->dailyAt('08:00');
+// Schedule::command('stock:check-alerts')->dailyAt('08:00');
+Schedule::command('stock:check-alerts')->everyMinute();

@@ -434,10 +434,21 @@
     <!-- /Sidebar -->
 
 </template>
-<script>
-export default {
+<script setup>
 
-}
+import { onMounted } from 'vue'
+
+onMounted(() => {
+    if (window.jQuery && window.jQuery.fn.slimScroll) {
+        window.jQuery('.slimscroll').slimScroll({
+            height: '100%',
+            position: 'right',
+            size: '5px',
+            color: '#dcdcdc',
+        })
+    }
+})
+
 </script>
 <style >
 

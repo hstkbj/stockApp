@@ -89,12 +89,16 @@
                         </div>
                         <div class="card-body">
                             <apexchart
+                                v-if="chartMontants.length > 0"
                                 key="montant-chart"
                                 type="area"
                                 height="320"
                                 :options="montantChartOptions"
                                 :series="montantChartSeries"
                             />
+                            <div v-else class="text-center text-muted py-5">
+                                Aucune donnée disponible pour le moment
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -231,10 +235,7 @@
 
     import { ref, computed, onMounted } from 'vue'
     import { getData } from '../../plugins/api'
-    import VueApexCharts from 'vue3-apexcharts'
 
-    // Enregistrement local du composant (pas besoin de le déclarer globalement dans main.js)
-    const apexchart = VueApexCharts
 
     const isLoading = ref(true)
 
@@ -250,11 +251,11 @@
         isLoading.value = true
         await getData('/dashboard').then(res => {
             if (res.status === 200) {
-                stats.value             = res.data.stats
-                chartMontants.value     = res.data.chart_montants
-                topProduits.value       = res.data.top_produits
-                mouvementsRecents.value = res.data.mouvements_recents
-                ventesRecentes.value    = res.data.ventes_recentes
+                stats.value             = res.data.stats             ?? stats.value
+                chartMontants.value     = res.data.chart_montants     ?? []
+                topProduits.value       = res.data.top_produits       ?? []
+                mouvementsRecents.value = res.data.mouvements_recents ?? []
+                ventesRecentes.value    = res.data.ventes_recentes    ?? []
             }
         }).finally(() => {
             isLoading.value = false
@@ -271,6 +272,7 @@
     const montantChartOptions = computed(() => ({
         chart: {
             id: 'montant-chart',            // ID unique et stable : évite les collisions SVG (defs/gradients)
+            type: 'area',                   // requis en plus de la prop "type" sur certaines versions d'ApexCharts
             toolbar: { show: false },
             zoom: { enabled: false },
             animations: { enabled: false }, // évite les conflits de rendu SVG au montage/démontage en SPA
@@ -300,6 +302,7 @@
     const donutChartOptions = computed(() => ({
         chart: {
             id: 'donut-chart',              // ID unique et stable
+            type: 'donut',                  // requis en plus de la prop "type" sur certaines versions d'ApexCharts
             animations: { enabled: false },
         },
         labels: topProduits.value.map(p => p.nom),

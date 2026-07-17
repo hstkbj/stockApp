@@ -51,11 +51,11 @@
 		<script src="{{asset('assets/js/feather.min.js')}}"></script>
 
 		<!-- Slimscroll JS -->
-		<script src="{{asset('assets/plugins/slimscroll/jquery.slimscroll.min.js')}}"></script>
+		<script defer src="{{asset('assets/plugins/slimscroll/jquery.slimscroll.min.js')}}"></script>
 
 		<!-- Chart JS -->
-		<script src="{{asset('assets/plugins/apexchart/apexcharts.min.js')}}"></script>
-		<script src="{{asset('assets/plugins/apexchart/chart-data.js')}}"></script>
+		{{-- <script src="{{asset('assets/plugins/apexchart/apexcharts.min.js')}}"></script>
+		<script src="{{asset('assets/plugins/apexchart/chart-data.js')}}"></script> --}}
 
         <!-- script for tinymce plugin -->
         <script defer src="{{asset('assets/vendor/libs/tinymce/tinymce.bundle.js')}}"></script>

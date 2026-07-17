@@ -1,9 +1,14 @@
-@import 'tailwindcss';
+.sidebar-inner.slimscroll {
+    height: calc(100vh - 60px); /* ajuste selon la hauteur de ton header */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* Optionnel : scrollbar plus discrète, dans le style de slimScroll */
+.sidebar-inner.slimscroll::-webkit-scrollbar {
+    width: 2px;
+}
+.sidebar-inner.slimscroll::-webkit-scrollbar-thumb {
+    background: #7439ff7e;
+    border-radius: 5px;
 }
