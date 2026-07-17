@@ -91,7 +91,7 @@ class ProductController extends Controller
     public function storeProductBoutique(Request $request)
     {
         $validated = $request->validate([
-            'code_barre'      => 'required|string|unique:products,code_barre',
+            'code_barre'      => 'required|string',
             'nom'             => 'required|string|max:255',
             'prix_unitaire'   => 'required|numeric|min:0',
             'prix_achat'      => 'required|numeric|min:0',
@@ -103,20 +103,33 @@ class ProductController extends Controller
             'rayon_id'        => 'required|exists:rayons,id',
         ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
-        }
-
         $seuilAlerte = $validated['seuil_alerte'];
         $quantite    = $validated['quantite'] ?? 0;
         unset($validated['seuil_alerte'], $validated['quantite']);
 
-        $validated['user_id'] = auth()->id();
+        $emplacement = Emplacement::where('nom', Emplacement::BOUTIQUE)->firstOrFail();
 
-        $product = DB::transaction(function () use ($validated, $seuilAlerte, $quantite) {
-            $product = Product::create($validated);
+        $product = DB::transaction(function () use ($request, $validated, $seuilAlerte, $quantite, $emplacement) {
 
-            $emplacement = Emplacement::where('nom', Emplacement::BOUTIQUE)->firstOrFail();
+            // Cherche un produit déjà existant avec ce code_barre
+            $product = Product::where('code_barre', $validated['code_barre'])->first();
+
+            if ($product) {
+                // Le produit existe déjà (probablement dans l'autre emplacement) : on ne le duplique pas
+                $stockExiste = Stock::where('product_id', $product->id)
+                    ->where('emplacement_id', $emplacement->id)
+                    ->exists();
+
+                if ($stockExiste) {
+                    abort(422, 'Ce produit existe déjà en boutique.');
+                }
+            } else {
+                if ($request->hasFile('image')) {
+                    $validated['image'] = $request->file('image')->store('products', 'public');
+                }
+                $validated['user_id'] = auth()->id();
+                $product = Product::create($validated);
+            }
 
             Stock::create([
                 'product_id'     => $product->id,
@@ -136,7 +149,7 @@ class ProductController extends Controller
     public function storeProductMagasin(Request $request)
     {
         $validated = $request->validate([
-            'code_barre'      => 'required|string|unique:products,code_barre',
+            'code_barre'      => 'required|string',
             'nom'             => 'required|string|max:255',
             'prix_unitaire'   => 'required|numeric|min:0',
             'prix_achat'      => 'required|numeric|min:0',
@@ -148,19 +161,33 @@ class ProductController extends Controller
             'rayon_id'        => 'nullable|exists:rayons,id',
         ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
-        }
-
         $seuilAlerte = $validated['seuil_alerte'];
         $quantite    = $validated['quantite'] ?? 0;
-        unset($validated['seuil_alerte'],$validated['quantite']);
-        $validated['user_id'] = auth()->id();
+        unset($validated['seuil_alerte'], $validated['quantite']);
 
-        $product = DB::transaction(function () use ($validated, $seuilAlerte, $quantite) {
-            $product = Product::create($validated);
+        $emplacement = Emplacement::where('nom', Emplacement::MAGASIN)->firstOrFail();
 
-            $emplacement = Emplacement::where('nom', Emplacement::MAGASIN)->firstOrFail();
+        $product = DB::transaction(function () use ($request, $validated, $seuilAlerte, $quantite, $emplacement) {
+
+            // Cherche un produit déjà existant avec ce code_barre
+            $product = Product::where('code_barre', $validated['code_barre'])->first();
+
+            if ($product) {
+                // Le produit existe déjà (probablement créé côté boutique) : on ne le duplique pas
+                $stockExiste = Stock::where('product_id', $product->id)
+                    ->where('emplacement_id', $emplacement->id)
+                    ->exists();
+
+                if ($stockExiste) {
+                    abort(422, 'Ce produit existe déjà en magasin.');
+                }
+            } else {
+                if ($request->hasFile('image')) {
+                    $validated['image'] = $request->file('image')->store('products', 'public');
+                }
+                $validated['user_id'] = auth()->id();
+                $product = Product::create($validated);
+            }
 
             Stock::create([
                 'product_id'     => $product->id,
