@@ -218,7 +218,7 @@
                                     </p>
                                 </div>
                                 <hr v-if="invoice.mecef?.status !== 'confirmed'">
-                                <div class="normalize mb-3" v-if="invoice.mecef?.status !== 'confirmed'">
+                                <div class="normalize mb-3" v-if="invoice.mecef?.status !== 'confirmed' ">
                                     <strong class="customer-text-one">Normalisation<span> :</span></strong>
                                     <form @submit.prevent="NormalizeInvoiceFunction">
                                         <div class="row">
@@ -255,7 +255,7 @@
                                     </form>
                                 </div>
                                 <hr>
-                                <div class="d-flex flex-column align-items-start justify-content-start gap-2">
+                                <div class="d-flex flex-column align-items-start justify-content-start gap-2" v-if="invoice.status !== 'cancelled'">
                                     <a @click="downloadPdf" class="cursor-pointer">
                                         Télécharger le PDF
                                     </a>
@@ -470,14 +470,14 @@ async function loadInvoice() {
             invoice.value        = res.data
             selectedStatus.value = res.data.status
             // Protection : mecef peut être absent ou vide
-            const qrCode = invoice.value.mecef.qr_code
+            const qrCode = invoice.value.mecef?.qr_code
             if (qrCode) {
                 QrCodeFunction(qrCode)
             }
         }
     } catch (error) {
         Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de charger la facture.' })
-        router.push('/vente')
+        console.log(error)
     } finally {
         isLoading.value = false
     }
