@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceMecefController extends Controller
 {
-    
+
     public function normalizeInvoice(Request $request, Invoice $invoice){
 
         $validated = $request->validate([
@@ -59,7 +59,7 @@ class InvoiceMecefController extends Controller
                 'message' => 'UID introuvable dans la réponse MECeF',
                 'response' => $response
             ], 422);
-        }        
+        }
 
         // ── Vérification des totaux ──────────────────────────────────────────────────
         // L'API retourne les montants en entiers (centimes ou francs entiers pour le FCFA)
@@ -114,10 +114,15 @@ class InvoiceMecefController extends Controller
         return response()->json($data, 201);
     }
 
-    public function cancelNormalizedInvoice(Request $request,Invoice $invoice){
-        
-        //Vérifier si la facture est déjà normalisé
-        if ($invoice->mecef[0]->status !== 'confirmed') {
+    public function cancelNormalizedInvoice(Request $request, Invoice $invoice)
+    {
+        // Récupère le dernier enregistrement MECeF confirmé pour cette facture
+        $confirmedMecef = $invoice->mecef()
+            ->where('status', 'confirmed')
+            ->latest()
+            ->first();
+
+        if (!$confirmedMecef) {
             return response()->json([
                 'message' => 'Cette facture n\'est pas normalisée.',
             ], 422);
@@ -145,7 +150,7 @@ class InvoiceMecefController extends Controller
                 ?? $response['data']['uid']
                 ?? $response['result']['uid']
                 ?? null;
-        
+
         if (!$uid) {
             return response()->json([
                 'message' => 'UID introuvable.'
@@ -168,17 +173,16 @@ class InvoiceMecefController extends Controller
             'uid'            => $uid,
             'invoice_type'   => 'FA',
             'payment_type'   => $paymentType,
-            'code_mecef_dgi' => $confirmation['codeMECeFDGI'],
-            'qr_code'        => $confirmation['qrCode'],
-            'nim'            => $confirmation['nim'],
-            'counters'       => $confirmation['counters'],
-            'mecef_datetime' => Carbon::createFromFormat(
-                'd/m/Y H:i:s',
-                $confirmation['dateTime']
-            ),
-            'total_mecef'    => $response['total'],
-            'vat_b'          => $response['vab'],
-            'ht_b'           => $response['hab'],
+            'code_mecef_dgi' => $confirmation['codeMECeFDGI'] ?? null,
+            'qr_code'        => $confirmation['qrCode'] ?? null,
+            'nim'            => $confirmation['nim'] ?? null,
+            'counters'       => $confirmation['counters'] ?? null,
+            'mecef_datetime' => isset($confirmation['dateTime'])
+                ? Carbon::createFromFormat('d/m/Y H:i:s', $confirmation['dateTime'])
+                : now(),
+            'total_mecef'    => $response['total'] ?? null,
+            'vat_b'          => $response['vab'] ?? null,
+            'ht_b'           => $response['hab'] ?? null,
             'status'         => 'confirmed',
         ]);
 
@@ -186,7 +190,6 @@ class InvoiceMecefController extends Controller
             'message' => 'Facture annulée avec succès.',
             'data'    => $avoir
         ]);
-
     }
-    
+
 }

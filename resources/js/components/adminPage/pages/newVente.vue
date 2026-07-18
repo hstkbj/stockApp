@@ -111,7 +111,7 @@
 
                             <!-- Articles List -->
                             <div v-if="formData.items.length > 0" class="mb-4">
-                                <div class="table-responsive">
+                                <div class="table">
                                     <table class="table table-sm table-bordered">
                                         <thead class="table-light">
                                             <tr>
@@ -125,21 +125,15 @@
                                         <tbody>
                                             <tr v-for="(item, index) in formData.items" :key="index">
                                                 <td>
-                                                    <select
+                                                    <SearchableSelect
                                                         v-model="item.product_id"
-                                                        class="form-control form-control-sm"
-                                                        :class="{ 'is-invalid': isEmpty[`product_${index}`] }"
+                                                        :options="allProducts"
+                                                        option-value="id"
+                                                        option-label="nom"
+                                                        placeholder="-- Sélectionner --"
+                                                        :invalid="isEmpty[`product_${index}`]"
                                                         @change="onProductSelected(index)"
-                                                    >
-                                                        <option value="">-- Sélectionner --</option>
-                                                        <option
-                                                            v-for="product in allProducts"
-                                                            :key="product.id"
-                                                            :value="product.id"
-                                                        >
-                                                            {{ product.nom }}
-                                                        </option>
-                                                    </select>
+                                                    />
                                                 </td>
                                                 <td>
                                                     <input
@@ -257,6 +251,7 @@
     import { ref, computed, onMounted } from 'vue';
     import Swal from 'sweetalert2';
     import { postData, getData, getSingleData, putData } from '../../plugins/api';
+    import SearchableSelect from '../selectSeach/SearchableSelect.vue'
     import { useRouter, useRoute  } from 'vue-router';
 
     const isLoader = ref(false);

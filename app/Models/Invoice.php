@@ -22,7 +22,7 @@ class Invoice extends Model
         'emplacement_id',
         'user_id',
     ];
- 
+
     protected function casts(): array
     {
         return [
@@ -33,7 +33,7 @@ class Invoice extends Model
             'total_ttc' => 'decimal:2',
         ];
     }
- 
+
     /**
      * Le client (peut être null si vente à un client anonyme,
      * voir `anonymous_customer_name`).
@@ -42,7 +42,7 @@ class Invoice extends Model
     {
         return $this->belongsTo(Client::class);
     }
- 
+
     /**
      * L'emplacement (boutique/magasin) d'où sort la marchandise vendue.
      */
@@ -50,17 +50,17 @@ class Invoice extends Model
     {
         return $this->belongsTo(Emplacement::class);
     }
- 
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
- 
+
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
     }
- 
+
     /**
      * Nom du client à afficher, qu'il soit enregistré ou anonyme.
      */
@@ -69,8 +69,8 @@ class Invoice extends Model
         return $this->client?->fullname ?? $this->anonymous_customer_name ?? 'Client anonyme';
     }
 
-    public function mecef(): HasMany
+    public function mecef(): HasOne
     {
-        return $this->hasMany(InvoiceMecef::class);
+        return $this->hasOne(InvoiceMecef::class);
     }
 }
