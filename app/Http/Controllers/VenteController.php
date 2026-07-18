@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class VenteController extends Controller
 {
-     public function index(){
+    public function index(){
         $query = Vente::with('user', 'items.product');
         $ventes = $query->latest()->get();
         return response()->json($ventes);

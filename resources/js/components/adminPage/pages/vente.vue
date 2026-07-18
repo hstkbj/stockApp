@@ -91,6 +91,38 @@
             }
         },
         {
+            title: 'Statut MECeF',
+            data: null,
+            render: function (data, type, row) {
+                if (!row.mecef) {
+                    return '<span class="badge bg-secondary">Non normalisée</span>'
+                }
+
+                const statutsMecef = {
+                    'pending'  : '<span class="badge bg-warning text-dark">En attente</span>',
+                    'confirmed': '<span class="badge bg-success">Confirmée</span>',
+                    'cancelled': '<span class="badge bg-danger">Annulée</span>',
+                }
+
+                const typesMecef = {
+                    'FV': 'Facture de vente',
+                    'FA': 'Facture d\'avoir',
+                    'EV': 'Ticket de vente',
+                    'EA': 'Ticket d\'avoir',
+                }
+
+                const badgeStatut = statutsMecef[row.mecef.status] ?? '<span class="badge bg-secondary">—</span>'
+                const typeLabel   = typesMecef[row.mecef.invoice_type] ?? row.mecef.invoice_type ?? '—'
+
+                return `
+                    <div class="d-flex flex-column">
+                        ${badgeStatut}
+                        <small class="text-muted mt-1">${typeLabel}</small>
+                    </div>
+                `
+            }
+        },
+        {
             title: 'Créé par',
             data: 'user',
             render: function (data) {

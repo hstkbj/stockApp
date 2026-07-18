@@ -27,7 +27,7 @@ class InvoiceController extends Controller
 
         $emplacement = Emplacement::where('nom', $request->emplacement)->firstOrFail();
 
-        $invoices = Invoice::with(['client', 'user', 'emplacement', 'items.product'])
+        $invoices = Invoice::with(['client', 'user', 'emplacement', 'items.product', 'mecef'])
             ->where('emplacement_id', $emplacement->id)
             ->latest()
             ->get();
@@ -116,10 +116,10 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         $invoice->load([
-            'client', 
-            'user', 
+            'client',
+            'user',
             'mecef' => fn($query) => $query->latest(),
-            'emplacement', 
+            'emplacement',
             'items.product'
             ]);
 

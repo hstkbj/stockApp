@@ -71,6 +71,6 @@ class Invoice extends Model
 
     public function mecef(): HasOne
     {
-        return $this->hasOne(InvoiceMecef::class);
+        return $this->hasOne(InvoiceMecef::class)->latestOfMany('created_at');
     }
 }

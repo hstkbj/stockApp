@@ -36,7 +36,7 @@ class MecefService{
             ],
         ];
 
-        
+
 
         return Http::withOptions(['verify' => false])->withToken($this->token)
             ->post($this->apiUrl, $payload)
@@ -51,7 +51,7 @@ class MecefService{
          * que l'on souhaite annuler.
          */
         // Retirer les tirets pour obtenir exactement 24 caractères
-        $reference = str_replace('-', '', $invoice->mecef[0]->code_mecef_dgi);
+        $reference = str_replace('-', '', $invoice->mecef->code_mecef_dgi);
 
         $payload = [
             'ifu'      => $this->ifu,
