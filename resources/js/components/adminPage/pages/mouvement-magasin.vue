@@ -5,7 +5,7 @@
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des Mouvements du magasin</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'mouvement-magasin')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Créer un mouvement</button>
@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table">
+                        <div class="table-responsive">
                             <DataTable :data="allMouvement" :columns="columns"/>
                         </div>
                     </div>
@@ -180,6 +180,7 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { can } from '../../plugins/permissions'
 
     let addmodal;
     let detailModal;
@@ -300,15 +301,26 @@
         },
 
         { title: 'Action', data: null, render: (data,type,row) => {
+
+            const peutModifier = can('update', 'mouvement-magasin')
+            const peutSupprimer = can('delete', 'mouvement-magasin')
+
+            if (!peutModifier && !peutSupprimer) {
+                return ''
+            }
+
             return `
+                ${peutModifier ? `
+                    <button class="btn btn-primary me-1" href="#" onclick="ShowMouvementFunction(${row.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                ` : ``}
 
-                <button class="btn btn-primary me-1" href="#" onclick="ShowMouvementFunction(${row.id})">
-                    <i class="fas fa-eye"></i>
-                </button>
-
-                <button class="btn btn-danger" href="#" onclick="DeleteMouvementFunction(${row.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${peutSupprimer ? `
+                    <button class="btn btn-danger" href="#" onclick="DeleteMouvementFunction(${row.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ``}
 
             `;
             }

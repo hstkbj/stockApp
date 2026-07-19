@@ -129,25 +129,27 @@ export function Script(){
 	init();
 
 	// Mobile menu sidebar overlay
-	$('body').append('<div class="sidebar-overlay"></div>');
-	$(document).on('click', '#mobile_btn', function () {
-		$wrapper.toggleClass('slide-nav');
-		$('.sidebar-overlay').toggleClass('opened');
-		$('html').toggleClass('menu-opened');
-		return false;
-	});
+    if ($('.sidebar-overlay').length === 0) {
+        $('body').append('<div class="sidebar-overlay"></div>');
+    }
+    $(document).off('click.sidebarToggle', '#mobile_btn').on('click.sidebarToggle', '#mobile_btn', function () {
+        $wrapper.toggleClass('slide-nav');
+        $('.sidebar-overlay').toggleClass('opened');
+        $('html').toggleClass('menu-opened');
+        return false;
+    });
 
-	$(".invoice-star").on("click", function () {
-		$('.invoice-blog').removeClass("active");
-		$(this).parent().parent().addClass("active");
-	});
+    $(".invoice-star").on("click", function () {
+        $('.invoice-blog').removeClass("active");
+        $(this).parent().parent().addClass("active");
+    });
 
-	// Sidebar overlay
-	$(".sidebar-overlay").on("click", function () {
-		$wrapper.removeClass('slide-nav');
-		$(".sidebar-overlay").removeClass("opened");
-		$('html').removeClass('menu-opened');
-	});
+    // Sidebar overlay
+    $(".sidebar-overlay").off('click.sidebarToggle').on("click.sidebarToggle", function () {
+        $wrapper.removeClass('slide-nav');
+        $(".sidebar-overlay").removeClass("opened");
+        $('html').removeClass('menu-opened');
+    });
 
 	// Page Content Height
 	if ($('.page-wrapper').length > 0) {
@@ -357,20 +359,20 @@ export function Script(){
 	});
 
 	// Small Sidebar
-	$(document).on('click', '#toggle_btn', function () {
-		if ($('body').hasClass('mini-sidebar')) {
-			$('body').removeClass('mini-sidebar');
-			$('.subdrop + ul').slideDown();
-		} else {
-			$('body').addClass('mini-sidebar');
-			$('.subdrop + ul').slideUp();
-		}
-		setTimeout(function () {
-			// mA.redraw();
-			// mL.redraw();
-		}, 300);
-		return false;
-	});
+    $(document).off('click.sidebarToggle', '#toggle_btn').on('click.sidebarToggle', '#toggle_btn', function () {
+        if ($('body').hasClass('mini-sidebar')) {
+            $('body').removeClass('mini-sidebar');
+            $('.subdrop + ul').slideDown();
+        } else {
+            $('body').addClass('mini-sidebar');
+            $('.subdrop + ul').slideUp();
+        }
+        setTimeout(function () {
+            // mA.redraw();
+            // mL.redraw();
+        }, 300);
+        return false;
+    });
 
 	$(document).on('mouseover', function (e) {
 		e.stopPropagation();

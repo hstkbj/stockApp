@@ -363,53 +363,54 @@
                 </nav>
                     <ul class="sidebar-vertical mt-4">
                         <li class="menu-title"><span>Gestion boutique</span></li>
-                        <li >
+                        <li v-if="canAccessPage('home')">
                             <RouterLink to="/" exact-active-class="active"><i class="fe fe-home"></i> <span> Dashboard</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('client')">
                             <RouterLink to="/client" exact-active-class="active"><i class="fe fe-users"></i> <span> Clients</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('category')">
                             <RouterLink to="/category" exact-active-class="active"><i class="fe fe-list"></i> <span> Categorie</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('rayon')">
                             <RouterLink to="/rayon" exact-active-class="active"><i class="fe fe-layers"></i> <span> Rayon</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('product')">
                             <RouterLink to="/product" exact-active-class="active"><i class="fe fe-box"></i> <span> Produits</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('mouvement')">
                             <RouterLink to="/mouvement" exact-active-class="active"><i class="fe fe-repeat"></i> <span> Mouvements</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('vente')">
                             <RouterLink to="/vente" exact-active-class="active"><i class="fe fe-shopping-cart"></i> <span> Vente</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('inventaire')">
                             <RouterLink to="/inventaire" exact-active-class="active"><i class="fe fe-clipboard"></i> <span> Inventaire</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('fournisseur')">
                             <RouterLink to="/fournisseur" exact-active-class="active"><i class="fe fe-truck"></i> <span> Fournisseur</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('approvisionnement')">
                             <RouterLink to="/approvisionnement" exact-active-class="active"><i class="fe fe-package"></i> <span> Approvisionnement</span></RouterLink>
                         </li>
-                        <li class="menu-title"><span>Gestion Magasin</span></li>
 
-                        <li>
+                        <li class="menu-title" v-if="canAccessPage('product-magasin') || canAccessPage('mouvement-magasin')"><span>Gestion Magasin</span></li>
+
+                        <li v-if="canAccessPage('product-magasin')">
                             <RouterLink to="/product-magasin" exact-active-class="active"><i class="fe fe-box"></i> <span> Produits Magasin</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('mouvement-magasin')">
                             <RouterLink to="/mouvement-magasin" exact-active-class="active"><i class="fe fe-repeat"></i> <span> Mouvement Magasin</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('approvisionnement')">
                             <RouterLink to="/approvisionnement" exact-active-class="active"><i class="fe fe-package"></i> <span> Approvisionnement</span></RouterLink>
                         </li>
 
-                        <li class="menu-title"><span>Gestion Utilisateur</span></li>
-                        <li>
+                        <li class="menu-title" v-if="canAccessPage('role') || canAccessPage('user')"><span>Gestion Utilisateur</span></li>
+                        <li v-if="canAccessPage('role')">
                             <RouterLink to="/role" exact-active-class="active"><i class="fe fe-shield"></i> <span> Role</span></RouterLink>
                         </li>
-                        <li>
+                        <li v-if="canAccessPage('user')">
                             <RouterLink to="/user" exact-active-class="active"><i class="fe fe-user"></i> <span> Utilisateur</span></RouterLink>
                         </li>
 
@@ -437,6 +438,7 @@
 <script setup>
 
 import { onMounted } from 'vue'
+import { canAccessPage } from '../../plugins/permissions'
 
 onMounted(() => {
     if (window.jQuery && window.jQuery.fn.slimScroll) {

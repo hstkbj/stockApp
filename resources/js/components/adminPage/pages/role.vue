@@ -5,7 +5,7 @@
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Rôles &amp; Permissions</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'role')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Ajouter un rôle</button>
@@ -107,6 +107,7 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { can } from '../../plugins/permissions'
 
     let rolemodal;
     let permissionmodal;
@@ -198,15 +199,27 @@
         },
         {
             title: 'Action', data: null, render: (data, type, row) => {
+
+                const peutModifier = can('update', 'role')
+                const peutSupprimer = can('delete', 'role')
+
+                if (!peutModifier && !peutSupprimer) {
+                    return ''
+                }
+
                 return `
                     <div class="dropdown">
                         <a class="btn btn-lg btn-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fe fe-more-vertical"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item cursor-pointer" onclick="ShowRoleFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier le nom</a></li>
-                            <li><a class="dropdown-item cursor-pointer" onclick="ShowPermissionsModal(${row.id}, '${row.name.replace(/'/g, "\\'")}')"><i class="fe fe-lock me-2"></i> Gérer les permissions</a></li>
-                            <li><a class="dropdown-item cursor-pointer" onclick="DeleteRoleFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
+                            ${peutModifier ? `
+                                <li><a class="dropdown-item cursor-pointer" onclick="ShowRoleFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier le nom</a></li>
+                                <li><a class="dropdown-item cursor-pointer" onclick="ShowPermissionsModal(${row.id}, '${row.name.replace(/'/g, "\\'")}')"><i class="fe fe-lock me-2"></i> Gérer les permissions</a></li>
+                            ` : ``}
+                            ${peutSupprimer ? `
+                                <li><a class="dropdown-item cursor-pointer" onclick="DeleteRoleFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
+                            ` : ``}
                         </ul>
                     </div>
                 `;

@@ -122,7 +122,7 @@
                             <div class="subscription-menu">
                                 <ul>
                                     <li>
-                                        <a class="dropdown-item" href="profile.html">Profile</a>
+                                        <RouterLink class="dropdown-item" to="/profils">Profile</RouterLink>
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="settings.html">Paramètre</a>

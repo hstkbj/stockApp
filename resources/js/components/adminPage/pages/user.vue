@@ -5,7 +5,7 @@
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des Utilisateurs</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'user')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Ajouter un utilisateur</button>
@@ -94,6 +94,7 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { can } from '../../plugins/permissions'
 
     let usermodal;
 
@@ -187,14 +188,22 @@
         },
         {
             title: 'Action', data: null, render: (data, type, row) => {
+
+                const peutModifier = can('update', 'user')
+                const peutSupprimer = can('delete', 'user')
+
+                if (!peutModifier && !peutSupprimer) {
+                    return ''
+                }
+
                 return `
                     <div class="dropdown">
                         <a class="btn btn-lg btn-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fe fe-more-vertical"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item cursor-pointer" onclick="ShowUserFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>
-                            <li><a class="dropdown-item cursor-pointer" onclick="DeleteUserFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
+                            ${peutModifier ? `<li><a class="dropdown-item cursor-pointer" onclick="ShowUserFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>` : ''}
+                            ${peutSupprimer ? `<li><a class="dropdown-item cursor-pointer" onclick="DeleteUserFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>` : ''}
                         </ul>
                     </div>
                 `;

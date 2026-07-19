@@ -1,6 +1,6 @@
 <template>
     <div class="content container-fluid">
-        
+
         <!-- Page Header -->
         <div class="page-header">
             <div class="content-page-header">
@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table">
+                        <div class="table-responsive">
                             <DataTable :data="allFournisseur" :columns="columns"/>
                         </div>
                     </div>
@@ -381,5 +381,5 @@
 
 </script>
 <style >
-    
+
 </style>

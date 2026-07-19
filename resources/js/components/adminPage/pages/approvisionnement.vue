@@ -1,11 +1,11 @@
 <template>
     <div class="content container-fluid">
-        
+
         <!-- Page Header -->
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des Approvisionnements</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'approvisionnement')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Créer un approvisionnement</button>
@@ -292,7 +292,7 @@
                                 </tr>
                             </tfoot>
                         </table>
-                        
+
                         <!-- Bouton Marquer comme livré -->
                         <div v-if="detailAppro.status === 'enAttente'"
                             class="alert d-flex align-items-center justify-content-between gap-2 mb-0"
@@ -336,6 +336,7 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref,computed } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { can } from '../../plugins/permissions'
 
     let addmodal;
     let detailModal;
@@ -497,27 +498,51 @@
         },
         {
             title: 'Action', data: null,
-            render: (data, type, row) => `
-                <button class="btn btn-info btn-sm me-1"
-                    onclick="ShowDetailAppro(${row.id})">
-                    <i class="fas fa-eye"></i>
-                </button>
-                ${row.status === 'brouillon' ? `
-                    <button class="btn btn-primary btn-sm me-1" 
-                        onclick="EnAttenteApproFunction(${row.id}, '${row.fournisseur?.email ?? ''}')">
-                        <i class="fas fa-clock"></i>
-                    </button>
-                `:``}
-                ${row.status === 'enAttente' ? `
-                <button class="btn btn-success btn-sm me-1" 
-                    onclick="LivrerApproFunction(${row.id})">
-                    <i class="fas fa-check"></i>
-                </button>` : ''}
-                <button class="btn btn-danger btn-sm" 
-                    onclick="DeleteApproFunction(${row.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `
+            render: (data, type, row) => {
+
+                const peutVoir = can('read', 'approvisionnement')
+                const peutModifier = can('update', 'approvisionnement')
+                const peutSupprimer = can('delete', 'approvisionnement')
+
+                if (!peutModifier && !peutSupprimer && !peutVoir) {
+                    return ''
+                }
+
+                return `
+                    ${peutVoir ? `
+                        <button class="btn btn-info btn-sm me-1"
+                            onclick="ShowDetailAppro(${row.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    ` : ``}
+
+                    ${peutModifier ? `
+
+                        ${row.status === 'brouillon' ? `
+                            <button class="btn btn-primary btn-sm me-1"
+                                onclick="EnAttenteApproFunction(${row.id}, '${row.fournisseur?.email ?? ''}')">
+                                <i class="fas fa-clock"></i>
+                            </button>
+                        `:``}
+                        ${row.status === 'enAttente' ? `
+                        <button class="btn btn-success btn-sm me-1"
+                            onclick="LivrerApproFunction(${row.id})">
+                            <i class="fas fa-check"></i>
+                        </button>` : ''}
+
+                    ` : ``}
+
+                    ${peutSupprimer ? `
+
+                        <button class="btn btn-danger btn-sm"
+                            onclick="DeleteApproFunction(${row.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    ` : ``}
+
+                `
+            }
         }
     ])
 
@@ -775,5 +800,5 @@
 
 </script>
 <style >
-    
+
 </style>

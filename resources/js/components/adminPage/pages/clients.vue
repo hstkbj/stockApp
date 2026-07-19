@@ -1,11 +1,11 @@
 <template>
     <div class="content container-fluid">
-        
+
         <!-- Page Header -->
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des clients</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'client')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Ajouté un client</button>
@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table">
+                        <div class="table-responsive">
                             <DataTable :data="allclients" :columns="columns"/>
                         </div>
                     </div>
@@ -112,6 +112,7 @@
     import DataTable from '../DataTable/Datatable.vue'
     import Swal from 'sweetalert2';
     import { postData, getData, getSingleData, putData, deleteData } from '../../plugins/api.js';
+    import { can } from '../../plugins/permissions'
 
     let addmodal;
 
@@ -167,25 +168,25 @@
                 return meta.row + 1; // Index (1-based)
             }
         },
-        { 
-            title: 'Nom complet', 
-            data: 'fullname' 
-        },
-        { 
-            title: 'Adresse Email', 
-            data: 'email' 
-        },
-        { 
-            title: 'Téléphone', 
-            data: 'phone' 
-        },
-        { 
-            title: 'Numéro IFU', 
-            data: 'ifu' 
+        {
+            title: 'Nom complet',
+            data: 'fullname'
         },
         {
-          title: 'Crée le', 
-          data: 'created_at', 
+            title: 'Adresse Email',
+            data: 'email'
+        },
+        {
+            title: 'Téléphone',
+            data: 'phone'
+        },
+        {
+            title: 'Numéro IFU',
+            data: 'ifu'
+        },
+        {
+          title: 'Crée le',
+          data: 'created_at',
           render: (data, type, row) => {
             // Formater la date
             const date = new Date(row.created_at); // Assure-toi que `created_at` est au format ISO ou timestamp
@@ -200,15 +201,26 @@
         },
 
         { title: 'Action', data: null, render: (data,type,row) => {
+
+            const peutModifier = can('update', 'client')
+            const peutSupprimer = can('delete', 'client')
+
+            if (!peutModifier && !peutSupprimer) {
+                return ''
+            }
+
             return `
+                ${peutModifier ? `
+                    <button class="btn btn-primary me-1" href="#" onclick="ShowClientFunction(${row.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                ` : ``}
 
-                <button class="btn btn-primary me-1" href="#" onclick="ShowClientFunction(${row.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-
-                <button class="btn btn-danger" href="#" onclick="DeleteClientFunction(${row.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${peutSupprimer ? `
+                    <button class="btn btn-danger" href="#" onclick="DeleteClientFunction(${row.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ``}
 
             `;
             }

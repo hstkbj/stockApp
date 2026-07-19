@@ -5,7 +5,7 @@
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des Catégories</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'category')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Ajouté une catégorie</button>
@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table">
+                        <div class="table-responsive">
                             <DataTable :data="allCategory" :columns="columns"/>
                         </div>
                     </div>
@@ -58,7 +58,7 @@
                 </form>
             </div>
         </div>
-        
+
     </div>
 </template>
 <script setup>
@@ -67,6 +67,7 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { can } from '../../plugins/permissions'
 
     let addmodal;
 
@@ -129,16 +130,26 @@
         },
 
         { title: 'Action', data: null, render: (data,type,row) => {
+
+            const peutModifier = can('update', 'category')
+            const peutSupprimer = can('delete', 'category')
+
+            if (!peutModifier && !peutSupprimer) {
+                return ''
+            }
+
+
             return `
-
-                <button class="btn btn-primary me-1" href="#" onclick="ShowCategoryFunction(${row.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-
-                <button class="btn btn-danger" href="#" onclick="DeleteCategoryFunction(${row.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-
+                ${peutModifier ? `
+                    <button class="btn btn-primary me-1" href="#" onclick="ShowCategoryFunction(${row.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                ` : ``}
+                ${peutSupprimer ? `
+                    <button class="btn btn-danger" href="#" onclick="DeleteCategoryFunction(${row.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ``}
             `;
             }
         }
@@ -257,5 +268,5 @@
 
 </script>
 <style>
-    
+
 </style>

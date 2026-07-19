@@ -5,7 +5,7 @@
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des Produits</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'product')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Ajouté un produits</button>
@@ -254,6 +254,7 @@
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
     import { useRoute, useRouter } from 'vue-router'
+    import { can } from '../../plugins/permissions'
 
     let addmodal;
     let transfertmodal;
@@ -428,6 +429,15 @@
         },
 
         { title: 'Action', data: null, render: (data,type,row) => {
+
+            const peutVoir = can('read', 'product')
+            const peutModifier = can('update', 'product')
+            const peutSupprimer = can('delete', 'product')
+
+            if (!peutModifier && !peutSupprimer && !peutVoir) {
+                return ''
+            }
+
             return `
 
                 <div class="dropdown">
@@ -436,10 +446,16 @@
                     </a>
 
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item cursor-pointer" onclick="ShowDetailsFunction(${row.id})"><i class="fe fe-eye me-2"></i> Détails</a></li>
-                        <li><a class="dropdown-item cursor-pointer" onclick="ShowProductFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>
-                        <li><a class="dropdown-item cursor-pointer" onclick="ShowTransfertModal(${row.id}, '${row.nom.replace(/'/g, "\\'")}')"><i class="fe fe-repeat me-2"></i> Transférer</a></li>
-                        <li><a class="dropdown-item cursor-pointer" onclick="DeleteProductFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
+                        ${peutVoir ? `
+                            <li><a class="dropdown-item cursor-pointer" onclick="ShowDetailsFunction(${row.id})"><i class="fe fe-eye me-2"></i> Détails</a></li>
+                        ` : ``}
+                        ${peutModifier ? `
+                            <li><a class="dropdown-item cursor-pointer" onclick="ShowProductFunction(${row.id})"><i class="fe fe-edit me-2"></i> Modifier</a></li>
+                            <li><a class="dropdown-item cursor-pointer" onclick="ShowTransfertModal(${row.id}, '${row.nom.replace(/'/g, "\\'")}')"><i class="fe fe-repeat me-2"></i> Transférer</a></li>
+                        ` : ``}
+                        ${peutSupprimer ? `
+                            <li><a class="dropdown-item cursor-pointer" onclick="DeleteProductFunction(${row.id})"><i class="fe fe-trash me-2"></i> Supprimer</a></li>
+                        ` : ``}
                     </ul>
                 </div>
 

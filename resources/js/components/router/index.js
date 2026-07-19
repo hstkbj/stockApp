@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { setCurrentUserPermissions, clearCurrentUserPermissions, canAccessPage } from "../plugins/permissions";
 import axiosInstance from "../plugins/axios";
 
 const routes = [
@@ -9,71 +10,92 @@ const routes = [
         children:[
             {
                 path: '',
+                meta: { routeName: 'home' },
                 component: () => import('@/components/adminPage/pages/home.vue'),
             },
             {
                 path:'/client',
+                meta: { routeName: 'client' },
                 component: () => import('@/components/adminPage/pages/clients.vue'),
             },
             {
                 path:'/category',
+                meta: { routeName: 'category' },
                 component: () => import('@/components/adminPage/pages/category.vue'),
             },
             {
                 path:'/rayon',
+                meta: { routeName: 'rayon' },
                 component: () => import('@/components/adminPage/pages/rayon.vue'),
             },
             {
                 path:'/product',
+                meta: { routeName: 'product' },
                 component: () => import('@/components/adminPage/pages/product.vue'),
             },
             {
                 path:'/mouvement',
+                meta: { routeName: 'mouvement' },
                 component: () => import('@/components/adminPage/pages/mouvement.vue'),
             },
             {
                 path:'/vente',
+                meta: { routeName: 'vente' },
                 component: () => import('@/components/adminPage/pages/vente.vue'),
             },
             {
                 path:'/new-vente',
+                meta: { routeName: 'vente' },
                 component: () => import('@/components/adminPage/pages/newVente.vue'),
             },
             {
                 path: '/edite-vente/:id?',
+                meta: { routeName: 'vente' },
                 component: () => import('@/components/adminPage/pages/newVente.vue'),
             },
             {
                 path: '/details-vente/:id',
+                meta: { routeName: 'vente' },
                 component: () => import('@/components/adminPage/pages/detailVente.vue'),
             },
             {
                 path: '/fournisseur',
+                meta: { routeName: 'fournisseur' },
                 component: () => import('@/components/adminPage/pages/fournisseur.vue'),
             },
             {
                 path: '/approvisionnement',
+                meta: { routeName: 'approvisionnement' },
                 component: () => import('@/components/adminPage/pages/approvisionnement.vue'),
             },
             {
                 path: '/product-magasin',
+                meta: { routeName: 'product-magasin' },
                 component: () => import('@/components/adminPage/pages/product-magasin.vue'),
             },
             {
                 path: '/mouvement-magasin',
+                meta: { routeName: 'mouvement-magasin' },
                 component: () => import('@/components/adminPage/pages/mouvement-magasin.vue'),
             },
             {
                 path: '/role',
+                meta: { routeName: 'role' },
                 component: () => import('@/components/adminPage/pages/role.vue'),
             },
             {
                 path:'/user',
+                meta: { routeName: 'user' },
                 component: () => import('@/components/adminPage/pages/user.vue'),
             },
             {
                 path:'/inventaire',
+                meta: { routeName: 'inventaire' },
                 component: () => import('@/components/adminPage/pages/inventaire.vue'),
+            },
+            {
+                path:'/profils',
+                component: ()=>import('@/components/adminPage/pages/profils.vue')
             }
         ]
     },
@@ -104,10 +126,12 @@ export async function isAuthenticated() {
         },
       });
       if (res.status === 200) {
+        setCurrentUserPermissions(res.data.user);
         return res.data.user;
       }
     } catch (error) {
       console.error("Erreur lors de la vérification de l'authentification :", error);
+      clearCurrentUserPermissions();
       return null;
     }
 }
@@ -121,16 +145,19 @@ router.beforeEach(async (to, from, next) => {
 
         if (auth && token) {
 
-            // const role = auth?.role;
+            const routeName = to.meta.routeName;
 
-            // // Vérifier si la route est restreinte à certains rôles
-            // if (to.meta.roles && !to.meta.roles.includes(role)) {
-            //     next('/');  // Redirige vers l'accueil si rôle non autorisé
-            // } else {
-            //     next();
-            // }
+            if (routeName && !canAccessPage(routeName)) {
+                if (to.path !== '/') {
+                    next('/');
+                } else {
+                    next(false);
+                }
+            } else {
+                next();
+            }
 
-            next();
+            //next();
 
         } else {
           localStorage.setItem('redirectAfterLogin', to.fullPath);

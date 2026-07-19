@@ -65,7 +65,7 @@
 		<script src="{{asset('assets/js/greedynav.js')}}"></script>
 
 		<!-- Custom JS -->
-		<script src="{{asset('assets/js/script.js')}}"></script>
+		{{-- <script src="{{asset('assets/js/script.js')}}"></script> --}}
 
     </body>
 </html>

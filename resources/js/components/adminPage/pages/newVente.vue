@@ -223,6 +223,7 @@
                                 class="btn btn-primary"
                                 @click="submitForm"
                                 :disabled="isLoader || formData.items.length === 0"
+                                v-if="can('create', 'vente') || can('update', 'vente')"
                             >
                                 <span v-if="!isLoader">
                                     <i class="fa fa-check-circle me-2"></i>{{ isEdite ? 'Modifier la vente' : 'Enregistrer la vente' }}
@@ -253,6 +254,7 @@
     import { postData, getData, getSingleData, putData } from '../../plugins/api';
     import SearchableSelect from '../selectSeach/SearchableSelect.vue'
     import { useRouter, useRoute  } from 'vue-router';
+    import { can } from '../../plugins/permissions'
 
     const isLoader = ref(false);
     const isEmpty = ref({});

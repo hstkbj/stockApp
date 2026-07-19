@@ -14,10 +14,10 @@
                             Détail de la facture
                         </h5>
                         <div v-if="invoice">
-                            <RouterLink :to="'/edite-vente/' + invoice.id" class="btn btn-primary me-2">
+                            <RouterLink :to="'/edite-vente/' + invoice.id" class="btn btn-primary me-2" v-if="can('update', ' vente')">
                                 <i class="fa fa-edit me-1"></i> Modifier
                             </RouterLink>
-                            <button class="btn btn-danger" @click="deleteInvoice">
+                            <button class="btn btn-danger" @click="deleteInvoice" v-if="can('delete', ' vente')">
                                 <i class="fa fa-trash me-1"></i> Supprimer
                             </button>
                         </div>
@@ -190,9 +190,9 @@
                             <div class="card-body">
 
                                 <!-- Changement de statut -->
-                                <div class="input-block mb-4" v-if="invoice.status !== 'cancelled'">
+                                <div class="input-block mb-4" v-if="invoice.status !== 'cancelled'" >
                                     <label class="fw-bold mb-2">Changer le statut</label>
-                                    <select class="form-select" v-model="selectedStatus" @change="updateStatus">
+                                    <select class="form-select" v-model="selectedStatus" @change="updateStatus" v-if="can('update', ' vente')">
                                         <option value="draft">Brouillon</option>
                                         <option value="sent">Envoyée</option>
                                         <option value="paid">Payée</option>
@@ -306,6 +306,7 @@ import Swal from 'sweetalert2'
 import { getSingleData, putData, deleteData, postData } from '../../plugins/api'
 import QRCode from 'qrcode'
 import axiosInstance from '../../plugins/axios'
+import { can } from '../../plugins/permissions'
 
 const route  = useRoute()
 const router = useRouter()

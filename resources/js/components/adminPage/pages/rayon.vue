@@ -1,11 +1,11 @@
 <template>
     <div class="content container-fluid">
-        
+
         <!-- Page Header -->
         <div class="page-header">
             <div class="content-page-header">
                 <h5>Liste des rayons</h5>
-                <div class="list-btn">
+                <div class="list-btn" v-if="can('create', 'rayon')">
                     <ul class="filter-list">
                         <li>
                             <button class="btn btn-primary" @click="showModal"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Ajouté un rayon</button>
@@ -20,7 +20,7 @@
             <div class="col-sm-12">
                 <div class="card-table">
                     <div class="card-body">
-                        <div class="table">
+                        <div class="table-responsive">
                             <DataTable :data="allRayon" :columns="columns"/>
                         </div>
                     </div>
@@ -78,6 +78,7 @@
     import DataTable from '../DataTable/Datatable.vue';
     import { onMounted, ref } from 'vue';
     import {postData, getData, getSingleData, putData, deleteData} from '../../plugins/api'
+    import { can } from '../../plugins/permissions'
 
     let addmodal;
 
@@ -152,15 +153,27 @@
         },
 
         { title: 'Action', data: null, render: (data,type,row) => {
+
+            const peutModifier = can('update', 'rayon')
+            const peutSupprimer = can('delete', 'rayon')
+
+            if (!peutModifier && !peutSupprimer) {
+                return ''
+            }
+
             return `
 
-                <button class="btn btn-primary me-1" href="#" onclick="ShowRayonFunction(${row.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
+                ${peutModifier ? `
+                    <button class="btn btn-primary me-1" href="#" onclick="ShowRayonFunction(${row.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                ` : ``}
 
-                <button class="btn btn-danger" href="#" onclick="DeleteRayonFunction(${row.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${peutSupprimer ? `
+                    <button class="btn btn-danger" href="#" onclick="DeleteRayonFunction(${row.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ``}
 
             `;
             }
@@ -283,5 +296,5 @@
 
 </script>
 <style>
-    
+
 </style>
